@@ -26,7 +26,7 @@ export const overviewDashboardItems = [
   { tab: "IKU 003", title: "Persentase Mahasiswa S1 dan D4/D3/D2/D1 Berkegiatan/Meraih Prestasi di Luar Program Studi" },
   { tab: "IKU 005", title: "Rasio Luaran Hasil Kerjasama Antara Perguruan Tinggi dan Start-Up/Industri/Lembaga" },
   { tab: "IKU 007", title: "Persentase Keterlibatan Perguruan Tinggi dalam SDG 1 (Tanpa Kemiskinan), SDG 4 (Pendidikan Berkualitas), SDG 17 (Kemitraan), dan 2 (dua) SDGs Lain Sesuai Keunggulan" },
-  { tab: "IKU 009", title: "Indikator Tambahan Institusi & Internasionalisasi" },
+  { tab: "IKU 009", title: "Persentase Pendapatan Non Pendidikan/UKT" },
 ] as const;
 
 export const ikuDashboardDetails: Record<MappedDashboardTab, { title: string; description: string }> = {
@@ -56,8 +56,8 @@ export const ikuDashboardDetails: Record<MappedDashboardTab, { title: string; de
       "Mengukur persentase keterlibatan dan kontribusi aktif perguruan tinggi dalam program pembangunan berkelanjutan (SDGs), khususnya SDG 1 (Tanpa Kemiskinan), SDG 4 (Pendidikan Berkualitas), SDG 17 (Kemitraan), serta 2 SDGs pilihan lain yang relevan dengan keunggulan institusi.",
   },
   "IKU 009": {
-    title: "Kategori Tambahan & Internasionalisasi Institusi",
+    title: "Persentase Pendapatan Non Pendidikan/UKT",
     description:
-      "Mengukur akreditasi internasional program studi, tingkat keaktifan kemitraan global universitas, serta penjaminan mutu tata kelola lembaga pendidikan tinggi berbasis standar global terintegrasi.",
+      "Mengukur persentase atau rasio pendapatan perguruan tinggi dari sumber non-pendidikan/non-UKT seperti usaha komersial, hilirisasi riset, kerja sama industri, hibah, jasa konsultasi, dan pengelolaan aset.",
   },
 };
