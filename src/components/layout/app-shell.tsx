@@ -713,53 +713,53 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         {isDashboardMenuOpen && (
                           <li id={`${uid}-monev-iku-menu`}>
                             <ul className="sidebar-contained-list">
-                              {dashboardMenuItems.map((item) => {
-                                const isActive = activeDashboardTab === item;
-                                const mappedConnection = dashboardConnectionByTab.get(item);
-                                const shouldAutoSelectSource =
-                                  item !== "Overview" && item !== "IKU 003" && Boolean(mappedConnection?.sourceId);
-                                return (
-                                  <li key={item} className="sidebar-list-item">
-                                    <button
-                                      className={`sidebar-list-link${isActive ? " is-active" : ""}`}
-                                      onClick={() => {
-                                        setDashboardTabUrl(item);
-                                        setActiveDashboardTab(item);
-                                        if (shouldAutoSelectSource) {
-                                          window.dispatchEvent(
-                                            new CustomEvent("app:select-source", {
-                                              detail: { sourceId: mappedConnection?.sourceId },
-                                            })
-                                          );
-                                        }
-                                      }}
-                                    >
-                                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0, flex: 1 }}>
-                                        <span style={{ width: "14px", flexShrink: 0 }} aria-hidden="true" />
-                                        <ChartBar size={16} style={{ color: isActive ? "#0f62fe" : "var(--cds-text-secondary)", flexShrink: 0 }} />
-                                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                          {item}
-                                        </span>
-                                      </div>
-                                      {item !== "Overview" && item !== "IKU 003" ? (
-                                        mappedConnection ? (
-                                          <CheckmarkFilled
-                                            size={14}
-                                            style={{ color: "#198038", flexShrink: 0 }}
-                                            title={mappedConnection.sourceLabel}
-                                          />
-                                        ) : (
-                                          <Information
-                                            size={14}
-                                            style={{ color: "var(--cds-text-secondary)", flexShrink: 0 }}
-                                            title="Belum ada mapping sumber data"
-                                          />
-                                        )
-                                      ) : null}
-                                    </button>
-                                  </li>
-                                );
-                              })}
+                                {dashboardMenuItems.map((item) => {
+                                  const isActive = activeDashboardTab === item;
+                                  const mappedConnection = dashboardConnectionByTab.get(item);
+                                  const shouldAutoSelectSource =
+                                    item !== "Overview" && Boolean(mappedConnection?.sourceId);
+                                  return (
+                                    <li key={item} className="sidebar-list-item">
+                                      <button
+                                        className={`sidebar-list-link${isActive ? " is-active" : ""}`}
+                                        onClick={() => {
+                                          setDashboardTabUrl(item);
+                                          setActiveDashboardTab(item);
+                                          if (shouldAutoSelectSource) {
+                                            window.dispatchEvent(
+                                              new CustomEvent("app:select-source", {
+                                                detail: { sourceId: mappedConnection?.sourceId },
+                                              })
+                                            );
+                                          }
+                                        }}
+                                      >
+                                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0, flex: 1 }}>
+                                          <span style={{ width: "14px", flexShrink: 0 }} aria-hidden="true" />
+                                          <ChartBar size={16} style={{ color: isActive ? "#0f62fe" : "var(--cds-text-secondary)", flexShrink: 0 }} />
+                                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                            {item}
+                                          </span>
+                                        </div>
+                                        {item !== "Overview" ? (
+                                          mappedConnection ? (
+                                            <CheckmarkFilled
+                                              size={14}
+                                              style={{ color: "#198038", flexShrink: 0 }}
+                                              title={mappedConnection.sourceLabel}
+                                            />
+                                          ) : (
+                                            <Information
+                                              size={14}
+                                              style={{ color: "var(--cds-text-secondary)", flexShrink: 0 }}
+                                              title="Belum ada mapping sumber data"
+                                            />
+                                          )
+                                        ) : null}
+                                      </button>
+                                    </li>
+                                  );
+                                })}
                             </ul>
                           </li>
                         )}
