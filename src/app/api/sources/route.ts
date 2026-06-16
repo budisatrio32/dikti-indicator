@@ -143,72 +143,70 @@ export async function POST(request: Request) {
       .map((item) => normalizeConnection(item))
       .filter((item: SheetConnection | null): item is SheetConnection => Boolean(item));
 
-    await prisma.$transaction(async (tx: SourceTransactionClient) => {
-      const existingRows = await tx.dataSourceConnection.findMany({
-        where: { userEmail },
-        select: dataSourceConnectionSelect
-      });
+    const existingRows = await prisma.dataSourceConnection.findMany({
+      where: { userEmail },
+      select: dataSourceConnectionSelect
+    });
 
-      const existingConnections = new Map(
-        existingRows
-          .map((row) => toSheetConnection(row))
-          .filter((item: SheetConnection | null): item is SheetConnection => Boolean(item))
-          .map((connection) => [connection.id, connection])
+    const existingConnections = new Map(
+      existingRows
+        .map((row) => toSheetConnection(row))
+        .filter((item: SheetConnection | null): item is SheetConnection => Boolean(item))
+        .map((connection) => [connection.id, connection])
+    );
+
+    const incomingIds = new Set(connections.map((connection) => connection.id));
+    const deleteIds = existingRows
+      .map((row) => row.id)
+      .filter((id) => !incomingIds.has(id));
+
+    const createData = connections
+      .filter((connection) => !existingConnections.has(connection.id))
+      .map((connection) => ({
+        id: connection.id,
+        userEmail,
+        type: connection.type,
+        name: connection.name,
+        url: connection.url,
+        files: connection.files
+      }));
+
+    const updateOperations = connections
+      .filter((connection) => {
+        const existing = existingConnections.get(connection.id);
+        return existing && !connectionsEqual(existing, connection);
+      })
+      .map((connection) =>
+        prisma.dataSourceConnection.update({
+          where: { id: connection.id },
+          data: {
+            type: connection.type,
+            name: connection.name,
+            url: connection.url,
+            files: connection.files,
+            updatedAt: new Date()
+          }
+        })
       );
 
-      const incomingIds = new Set(connections.map((connection) => connection.id));
-      const deleteIds = existingRows
-        .map((row) => row.id)
-        .filter((id) => !incomingIds.has(id));
-
-      const createData = connections
-        .filter((connection) => !existingConnections.has(connection.id))
-        .map((connection) => ({
-          id: connection.id,
+    if (deleteIds.length > 0) {
+      await prisma.dataSourceConnection.deleteMany({
+        where: {
           userEmail,
-          type: connection.type,
-          name: connection.name,
-          url: connection.url,
-          files: connection.files
-        }));
+          id: { in: deleteIds }
+        }
+      });
+    }
 
-      const updateOperations = connections
-        .filter((connection) => {
-          const existing = existingConnections.get(connection.id);
-          return existing && !connectionsEqual(existing, connection);
-        })
-        .map((connection) =>
-          tx.dataSourceConnection.update({
-            where: { id: connection.id },
-            data: {
-              type: connection.type,
-              name: connection.name,
-              url: connection.url,
-              files: connection.files,
-              updatedAt: new Date()
-            }
-          })
-        );
+    if (createData.length > 0) {
+      await prisma.dataSourceConnection.createMany({
+        data: createData
+      });
+    }
 
-      if (deleteIds.length > 0) {
-        await tx.dataSourceConnection.deleteMany({
-          where: {
-            userEmail,
-            id: { in: deleteIds }
-          }
-        });
-      }
-
-      if (createData.length > 0) {
-        await tx.dataSourceConnection.createMany({
-          data: createData
-        });
-      }
-
-      if (updateOperations.length > 0) {
-        await Promise.all(updateOperations);
-      }
-    });
+    if (updateOperations.length > 0) {
+      await Promise.all(updateOperations);
+    }
 
     return NextResponse.json({ ok: true });
   } catch {
