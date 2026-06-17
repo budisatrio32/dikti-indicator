@@ -491,3 +491,167 @@ export function generateMockIku005Data(faculty: string, year: string): { rows: R
 
   return { rows, columns };
 }
+
+export function generateMockIku007Data(faculty: string, year: string): { rows: RawRow[]; columns: string[] } {
+  const columns = [
+    "Tahun",
+    "Fakultas",
+    "Program Studi",
+    "Jenjang",
+    "Total Kegiatan SDG",
+    "Kegiatan SDG Wajib (SDG 1, 4, 17)",
+    "Kegiatan SDG Unggulan",
+    "Total Kegiatan Memenuhi IKU",
+    "Persentase IKU 007",
+    "Nama Kegiatan/Mitra",
+    "Evidence"
+  ];
+
+  let programs: { name: string; degree: string }[] = [];
+  if (faculty === "Teknik") {
+    programs = [
+      { name: "S1 Teknik Informatika", degree: "S1" },
+      { name: "S1 Teknik Elektro", degree: "S1" },
+      { name: "S1 Teknik Mesin", degree: "S1" },
+      { name: "S1 Teknik Sipil", degree: "S1" },
+      { name: "S1 Teknik Kimia", degree: "S1" },
+      { name: "S1 Teknik Industri", degree: "S1" }
+    ];
+  } else if (faculty === "MIPA") {
+    programs = [
+      { name: "S1 Matematika", degree: "S1" },
+      { name: "S1 Fisika", degree: "S1" },
+      { name: "S1 Kimia", degree: "S1" },
+      { name: "S1 Biologi", degree: "S1" },
+      { name: "S1 Statistika", degree: "S1" }
+    ];
+  } else if (faculty === "Ekonomi") {
+    programs = [
+      { name: "S1 Manajemen", degree: "S1" },
+      { name: "S1 Akuntansi", degree: "S1" },
+      { name: "S1 Ekonomi Pembangunan", degree: "S1" }
+    ];
+  } else {
+    programs = [
+      { name: "S1 Kedokteran", degree: "S1" },
+      { name: "S1 Farmasi", degree: "S1" },
+      { name: "S1 Psikologi", degree: "S1" }
+    ];
+  }
+
+  const activitiesList = [
+    "Sosialisasi Pembangunan Sanitasi Desa (SDG 1)",
+    "Bantuan Sosial Pengentasan Kemiskinan Ekstrem (SDG 1)",
+    "Pelatihan Literasi Digital & Coding Sekolah (SDG 4)",
+    "Pengajaran Sukarela Guru Perbatasan (SDG 4)",
+    "Kemitraan Sertifikasi Industri Kreatif (SDG 17)",
+    "Kolaborasi Riset Pengolahan Sampah Terpadu (SDG 17)"
+  ];
+
+  const rows: RawRow[] = programs.map((prog, idx) => {
+    const seed = idx + faculty.length + Number(year);
+    const totalActivities = 4 + (seed % 8);
+    const wajib = Math.floor(totalActivities * (0.5 + ((seed * 3) % 4) * 0.1));
+    const unggulan = Math.floor(totalActivities * (0.1 + ((seed * 2) % 3) * 0.1));
+    const ikuTotal = Math.min(totalActivities, wajib + unggulan);
+    const ikuPct = Math.round((ikuTotal / totalActivities) * 10000) / 100;
+
+    return {
+      "Tahun": year,
+      "Fakultas": faculty,
+      "Program Studi": prog.name,
+      "Jenjang": prog.degree,
+      "Total Kegiatan SDG": totalActivities,
+      "Kegiatan SDG Wajib (SDG 1, 4, 17)": wajib,
+      "Kegiatan SDG Unggulan": unggulan,
+      "Total Kegiatan Memenuhi IKU": ikuTotal,
+      "Persentase IKU 007": ikuPct,
+      "Nama Kegiatan/Mitra": activitiesList[idx % activitiesList.length],
+      "Evidence": `SK_SDGs_${faculty}_${prog.name.replace(/\s+/g, "_")}_${year}.pdf`
+    };
+  });
+
+  return { rows, columns };
+}
+
+export function generateMockIku009Data(faculty: string, year: string): { rows: RawRow[]; columns: string[] } {
+  const columns = [
+    "Tahun",
+    "Fakultas",
+    "Program Studi",
+    "Jenjang",
+    "Total Pendapatan",
+    "Pendapatan Usaha Komersial",
+    "Pendapatan Kerjasama Riset",
+    "Total Pendapatan Non-UKT",
+    "Persentase IKU 009",
+    "Sumber Pendapatan/Mitra",
+    "Evidence"
+  ];
+
+  let programs: { name: string; degree: string }[] = [];
+  if (faculty === "Teknik") {
+    programs = [
+      { name: "S1 Teknik Informatika", degree: "S1" },
+      { name: "S1 Teknik Elektro", degree: "S1" },
+      { name: "S1 Teknik Mesin", degree: "S1" },
+      { name: "S1 Teknik Sipil", degree: "S1" },
+      { name: "S1 Teknik Kimia", degree: "S1" },
+      { name: "S1 Teknik Industri", degree: "S1" }
+    ];
+  } else if (faculty === "MIPA") {
+    programs = [
+      { name: "S1 Matematika", degree: "S1" },
+      { name: "S1 Fisika", degree: "S1" },
+      { name: "S1 Kimia", degree: "S1" },
+      { name: "S1 Biologi", degree: "S1" },
+      { name: "S1 Statistika", degree: "S1" }
+    ];
+  } else if (faculty === "Ekonomi") {
+    programs = [
+      { name: "S1 Manajemen", degree: "S1" },
+      { name: "S1 Akuntansi", degree: "S1" },
+      { name: "S1 Ekonomi Pembangunan", degree: "S1" }
+    ];
+  } else {
+    programs = [
+      { name: "S1 Kedokteran", degree: "S1" },
+      { name: "S1 Farmasi", degree: "S1" },
+      { name: "S1 Psikologi", degree: "S1" }
+    ];
+  }
+
+  const partnersList = [
+    "Unit Usaha Kantin Terpadu & Laboratorium",
+    "Kerjasama Jasa Konsultan Perencanaan Wilayah",
+    "Hilirisasi Riset Sensor IoT Industri Smart City",
+    "Program Hibah Penelitian Kerjasama Luar Negeri",
+    "Pelatihan & Sertifikasi Kompetensi Professional",
+    "Pengelolaan Aset Wisma Tamu & Guest House Universitas"
+  ];
+
+  const rows: RawRow[] = programs.map((prog, idx) => {
+    const seed = idx + faculty.length + Number(year);
+    const totalRevenue = 50000000 + (seed % 10) * 15000000;
+    const komersial = Math.floor(totalRevenue * (0.4 + ((seed * 3) % 4) * 0.1));
+    const kerjasama = Math.floor(totalRevenue * (0.1 + ((seed * 2) % 3) * 0.1));
+    const ikuTotal = Math.min(totalRevenue, komersial + kerjasama);
+    const ikuPct = Math.round((ikuTotal / totalRevenue) * 10000) / 100;
+
+    return {
+      "Tahun": year,
+      "Fakultas": faculty,
+      "Program Studi": prog.name,
+      "Jenjang": prog.degree,
+      "Total Pendapatan": totalRevenue,
+      "Pendapatan Usaha Komersial": komersial,
+      "Pendapatan Kerjasama Riset": kerjasama,
+      "Total Pendapatan Non-UKT": ikuTotal,
+      "Persentase IKU 009": ikuPct,
+      "Sumber Pendapatan/Mitra": partnersList[idx % partnersList.length],
+      "Evidence": `Kuitansi_Penerimaan_${faculty}_${prog.name.replace(/\s+/g, "_")}_${year}.pdf`
+    };
+  });
+
+  return { rows, columns };
+}

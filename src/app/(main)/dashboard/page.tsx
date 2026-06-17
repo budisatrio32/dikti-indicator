@@ -17,6 +17,8 @@ import { Iku003DashboardView, Iku003Skeleton } from "@/components/dashboard/dash
 import { Iku001Dashboard, Iku001Skeleton } from "@/components/dashboard/iku001-dashboard";
 import { Iku002Dashboard, Iku002Skeleton } from "@/components/dashboard/dashboard-iku002-view";
 import { Iku005DashboardView, Iku005Skeleton } from "@/components/dashboard/dashboard-iku005-view";
+import { Iku007DashboardView, Iku007Skeleton } from "@/components/dashboard/dashboard-iku007-view";
+import { Iku009DashboardView, Iku009Skeleton } from "@/components/dashboard/dashboard-iku009-view";
 
 type ExistingConnectionOption = { id: string; label: string };
 
@@ -55,6 +57,8 @@ const MemoOverviewDashboard = memo(DashboardOverview);
 const MemoPlaceholderDashboard = memo(DashboardPlaceholder);
 const MemoIku003DashboardView = memo(Iku003DashboardView);
 const MemoIku005DashboardView = memo(Iku005DashboardView);
+const MemoIku007DashboardView = memo(Iku007DashboardView);
+const MemoIku009DashboardView = memo(Iku009DashboardView);
 
 function DashboardPageContent() {
   const searchParams = useSearchParams();
@@ -123,6 +127,10 @@ function DashboardPageContent() {
       <Iku003Skeleton />
     ) : requestedDashboardTab === "IKU 005" ? (
       <Iku005Skeleton />
+    ) : requestedDashboardTab === "IKU 007" ? (
+      <Iku007Skeleton />
+    ) : requestedDashboardTab === "IKU 009" ? (
+      <Iku009Skeleton />
     ) : (
       <MainContentSkeleton />
     );
@@ -249,6 +257,24 @@ function DashboardPageContent() {
         />
       )}
 
+      {/* View 2: Detailed IKU 007 Dashboard */}
+      {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab === "IKU 007" && Boolean(dashboardTabConnection) && (
+        <MemoIku007DashboardView
+          rows={rows}
+          parseStatus={parseStatus}
+          errorMessage={errorMessage}
+        />
+      )}
+
+      {/* View 2: Detailed IKU 009 Dashboard */}
+      {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab === "IKU 009" && Boolean(dashboardTabConnection) && (
+        <MemoIku009DashboardView
+          rows={rows}
+          parseStatus={parseStatus}
+          errorMessage={errorMessage}
+        />
+      )}
+
       {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab === "IKU 001" && Boolean(dashboardTabConnection) && (
         <Iku001Dashboard rows={rows} parseStatus={parseStatus} errorMessage={errorMessage} />
       )}
@@ -258,7 +284,7 @@ function DashboardPageContent() {
       )}
 
       {/* View 3: Other IKUs Placeholder Connect Portals */}
-      {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab !== "Overview" && !(activeDashboardTab === "IKU 001" && Boolean(dashboardTabConnection)) && !(activeDashboardTab === "IKU 002" && Boolean(dashboardTabConnection)) && !(activeDashboardTab === "IKU 003" && Boolean(dashboardTabConnection)) && !(activeDashboardTab === "IKU 005" && Boolean(dashboardTabConnection)) && activeIkuDetail && (
+      {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab !== "Overview" && !(activeDashboardTab === "IKU 001" && Boolean(dashboardTabConnection)) && !(activeDashboardTab === "IKU 002" && Boolean(dashboardTabConnection)) && !(activeDashboardTab === "IKU 003" && Boolean(dashboardTabConnection)) && !(activeDashboardTab === "IKU 005" && Boolean(dashboardTabConnection)) && !(activeDashboardTab === "IKU 007" && Boolean(dashboardTabConnection)) && !(activeDashboardTab === "IKU 009" && Boolean(dashboardTabConnection)) && activeIkuDetail && (
         <MemoPlaceholderDashboard
           ikuCode={activeDashboardTab}
           title={activeIkuDetail.title}
