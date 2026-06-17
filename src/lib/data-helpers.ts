@@ -8,12 +8,11 @@ export function generateMockIkuData(faculty: string, year: string): { rows: RawR
     "Fakultas",
     "Program Studi",
     "Jenjang",
-    "Total Dosen Tetap",
-    "IK-017 (Dosen Tridharma)",
-    "IK-018 (Dosen Praktisi Industri)",
-    "Dosen Membina Prestasi Mahasiswa Nasional/Internasional",
-    "Total Dosen Memenuhi IKU003",
-    "Persentase IKU003",
+    "Total Mahasiswa Aktif",
+    "Mahasiswa Berkegiatan di Luar Prodi (MBKM)",
+    "Mahasiswa Meraih Prestasi",
+    "Total Mahasiswa Memenuhi IKU",
+    "Persentase IKU 003",
     "Mitra Kampus/Industri",
     "Evidence"
   ];
@@ -68,11 +67,10 @@ export function generateMockIkuData(faculty: string, year: string): { rows: RawR
     // Fully deterministic values based on program index and faculty name
     // to prevent server-client hydration mismatches during SSR.
     const seed = idx + faculty.length;
-    const total = 30 + (seed % 15); // Deterministic total: 30 to 44
-    const iku017 = Math.floor(total * (0.50 + ((seed * 3) % 7) * 0.05)); // 50% to 80%
-    const iku018 = Math.floor(total * (0.10 + ((seed * 7) % 5) * 0.04)); // 10% to 26%
-    const coaching = Math.floor(total * (0.03 + ((seed * 2) % 4) * 0.02)); // 3% to 9%
-    const ikuTotal = Math.min(total, iku017 + iku018 + coaching);
+    const total = 120 + (seed % 80); // Deterministic total: 120 to 199
+    const mbkm = Math.floor(total * (0.35 + ((seed * 3) % 7) * 0.05)); // 35% to 65%
+    const prestasi = Math.floor(total * (0.05 + ((seed * 5) % 5) * 0.03)); // 5% to 17%
+    const ikuTotal = Math.min(total, mbkm + prestasi);
     const ikuPct = Math.round((ikuTotal / total) * 10000) / 100;
 
     return {
@@ -80,12 +78,11 @@ export function generateMockIkuData(faculty: string, year: string): { rows: RawR
       "Fakultas": faculty,
       "Program Studi": prog.name,
       "Jenjang": prog.degree,
-      "Total Dosen Tetap": total,
-      "IK-017 (Dosen Tridharma)": iku017,
-      "IK-018 (Dosen Praktisi Industri)": iku018,
-      "Dosen Membina Prestasi Mahasiswa Nasional/Internasional": coaching,
-      "Total Dosen Memenuhi IKU003": ikuTotal,
-      "Persentase IKU003": ikuPct,
+      "Total Mahasiswa Aktif": total,
+      "Mahasiswa Berkegiatan di Luar Prodi (MBKM)": mbkm,
+      "Mahasiswa Meraih Prestasi": prestasi,
+      "Total Mahasiswa Memenuhi IKU": ikuTotal,
+      "Persentase IKU 003": ikuPct,
       "Mitra Kampus/Industri": partnersList[idx % partnersList.length],
       "Evidence": `SK_Dekan_${faculty}_${prog.name.replace(/\s+/g, "_")}_${year}.pdf`
     };
@@ -411,4 +408,86 @@ export function exportRowsToCsv(rows: RawRow[], filename = "export.csv") {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+export function generateMockIku005Data(faculty: string, year: string): { rows: RawRow[]; columns: string[] } {
+  const columns = [
+    "Tahun",
+    "Fakultas",
+    "Program Studi",
+    "Jenjang",
+    "Total Kerjasama",
+    "Jumlah Luaran Kerjasama",
+    "Jumlah Paten/Lisensi",
+    "Total Luaran Memenuhi IKU",
+    "Persentase IKU 005",
+    "Mitra Industri/Start-Up",
+    "Evidence"
+  ];
+
+  let programs: { name: string; degree: string }[] = [];
+  if (faculty === "Teknik") {
+    programs = [
+      { name: "S1 Teknik Informatika", degree: "S1" },
+      { name: "S1 Teknik Elektro", degree: "S1" },
+      { name: "S1 Teknik Mesin", degree: "S1" },
+      { name: "S1 Teknik Sipil", degree: "S1" },
+      { name: "S1 Teknik Kimia", degree: "S1" },
+      { name: "S1 Teknik Industri", degree: "S1" }
+    ];
+  } else if (faculty === "MIPA") {
+    programs = [
+      { name: "S1 Matematika", degree: "S1" },
+      { name: "S1 Fisika", degree: "S1" },
+      { name: "S1 Kimia", degree: "S1" },
+      { name: "S1 Biologi", degree: "S1" },
+      { name: "S1 Statistika", degree: "S1" }
+    ];
+  } else if (faculty === "Ekonomi") {
+    programs = [
+      { name: "S1 Manajemen", degree: "S1" },
+      { name: "S1 Akuntansi", degree: "S1" },
+      { name: "S1 Ekonomi Pembangunan", degree: "S1" }
+    ];
+  } else {
+    programs = [
+      { name: "S1 Kedokteran", degree: "S1" },
+      { name: "S1 Farmasi", degree: "S1" },
+      { name: "S1 Psikologi", degree: "S1" }
+    ];
+  }
+
+  const partnersList = [
+    "PT GoTo Gojek Tokopedia, Tbk",
+    "PT Telkom Indonesia, Tbk",
+    "PT Astra International, Tbk",
+    "PT Pertamina (Persero)",
+    "Kementerian Komunikasi dan Informatika",
+    "Google Developer Student Clubs"
+  ];
+
+  const rows: RawRow[] = programs.map((prog, idx) => {
+    const seed = idx + faculty.length + Number(year);
+    const totalKerjasama = 5 + (seed % 10);
+    const luaran = Math.floor(totalKerjasama * (0.6 + ((seed * 3) % 5) * 0.08));
+    const paten = Math.floor(luaran * (0.1 + ((seed * 2) % 4) * 0.05));
+    const ikuTotal = Math.min(totalKerjasama, luaran + paten);
+    const ikuPct = Math.round((ikuTotal / totalKerjasama) * 10000) / 100;
+
+    return {
+      "Tahun": year,
+      "Fakultas": faculty,
+      "Program Studi": prog.name,
+      "Jenjang": prog.degree,
+      "Total Kerjasama": totalKerjasama,
+      "Jumlah Luaran Kerjasama": luaran,
+      "Jumlah Paten/Lisensi": paten,
+      "Total Luaran Memenuhi IKU": ikuTotal,
+      "Persentase IKU 005": ikuPct,
+      "Mitra Industri/Start-Up": partnersList[idx % partnersList.length],
+      "Evidence": `PKS_Mitra_${faculty}_${prog.name.replace(/\s+/g, "_")}_${year}.pdf`
+    };
+  });
+
+  return { rows, columns };
 }

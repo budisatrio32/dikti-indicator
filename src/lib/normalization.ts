@@ -5,17 +5,17 @@ const aliases: Record<CanonicalKey, string[]> = {
   faculty: ["fakultas", "faculty"],
   study_program: ["program studi", "prodi", "study program", "program_studi"],
   degree: ["jenjang", "degree"],
-  total_lecturers: ["total dosen tetap", "total_lecturers"],
-  iku_017: ["ik-017", "iku 017", "dosen tridharma", "ik017"],
-  iku_018: ["ik-018", "iku 018", "dosen praktisi industri", "ik018"],
+  total_lecturers: ["total dosen tetap", "total_lecturers", "total mahasiswa aktif", "mahasiswa aktif", "total mahasiswa", "total dosen", "total kerjasama", "jumlah kerjasama"],
+  iku_017: ["ik-017", "iku 017", "dosen tridharma", "ik017", "mahasiswa berkegiatan di luar prodi", "mahasiswa berkegiatan", "mbkm", "jumlah luaran kerjasama", "luaran kerjasama", "jumlah luaran", "luaran"],
+  iku_018: ["ik-018", "iku 018", "dosen praktisi industri", "ik018", "mahasiswa meraih prestasi", "mahasiswa berprestasi", "prestasi mahasiswa", "jumlah kerjasama industri", "kerjasama komersial", "jumlah paten lisensi", "paten lisensi"],
   coaching_achievement: [
     "dosen membina prestasi mahasiswa nasional/internasional",
     "dosen membina prestasi",
     "coaching achievement",
   ],
-  iku_total: ["total dosen memenuhi iku003", "iku_total", "total memenuhi iku003"],
-  iku_percentage: ["persentase iku003", "iku percentage", "iku003", "persentase iku"],
-  partners: ["mitra kampus/industri", "mitra", "partners"],
+  iku_total: ["total dosen memenuhi iku003", "iku_total", "total memenuhi iku003", "total mahasiswa memenuhi iku", "mahasiswa memenuhi iku", "total luaran memenuhi iku", "total memenuhi iku005"],
+  iku_percentage: ["persentase iku003", "iku percentage", "iku003", "persentase iku", "persentase iku 003", "persentase iku005", "persentase iku 005", "iku005", "rasio luaran"],
+  partners: ["mitra kampus/industri", "mitra", "partners", "nama mitra"],
   evidence: ["evidence", "bukti"],
 };
 
