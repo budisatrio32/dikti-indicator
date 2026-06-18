@@ -609,6 +609,9 @@ export function Iku005DashboardView({ rows, parseStatus, errorMessage }: Props) 
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%" }}>
       {/* Search and Filter Panel */}
       <Tile style={{ padding: "1rem", position: "sticky", top: "0.5rem", zIndex: 20 }}>
+        <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.875rem", fontWeight: 600, color: "var(--cds-text-secondary)" }}>
+          Filter & Pencarian IKU 005
+        </h4>
         <div className="dashboard-toolbars" style={{ position: "relative" }}>
           <Search
             id="iku005-search"

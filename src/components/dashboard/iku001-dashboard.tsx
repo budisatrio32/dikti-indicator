@@ -315,12 +315,15 @@ export function Iku001Dashboard({ rows, parseStatus, errorMessage }: Props) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%" }}>
-      <Tile style={{ padding: "0.5rem", position: "sticky", top: "0.5rem", zIndex: 40 }}>
+      <Tile style={{ padding: "0.75rem", position: "sticky", top: "0.5rem", zIndex: 40 }}>
         <div
           style={{
             background: "var(--cds-layer-01)"
           }}
         >
+          <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.875rem", fontWeight: 600, color: "var(--cds-text-secondary)" }}>
+            Filter & Pencarian IKU 001
+          </h4>
           <div className="dashboard-toolbars" style={{ position: "relative" }}>
             <Search id="iku001-search" size="sm" labelText="Search Prodi" placeholder="Search Prodi" value={search} onChange={(e) => setSearch(e.currentTarget.value)} />
             <div className="iku001-filter-dropdown" style={{ position: "relative" }}>

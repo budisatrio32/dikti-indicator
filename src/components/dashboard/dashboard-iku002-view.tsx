@@ -706,6 +706,9 @@ export function Iku002Dashboard({ rows, parseStatus, errorMessage }: Props) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       <Tile style={{ padding: "1rem", position: "sticky", top: "0.5rem", zIndex: 20 }}>
+        <h4 style={{ margin: "0 0 0.5rem 0", fontSize: "0.875rem", fontWeight: 600, color: "var(--cds-text-secondary)" }}>
+          Filter & Pencarian IKU 002
+        </h4>
         <div className="dashboard-toolbars" style={{ position: "relative" }}>
           <Search
             id="iku002-search"
