@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tag, Tile } from "@carbon/react";
+import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tag, Tile, SkeletonText, SkeletonPlaceholder } from "@carbon/react";
 import { overviewDashboardItems, type DashboardTabConnection } from "@/lib/dashboard-config";
 
 type OverviewKpis = {
@@ -14,9 +14,10 @@ type Props = {
   threshold: number;
   onOpenUpload: () => void;
   dashboardConnections: DashboardTabConnection[];
+  isLoading?: boolean;
 };
 
-export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload, dashboardConnections }: Props) {
+export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload, dashboardConnections, isLoading = false }: Props) {
   const renderChannelAction = (isConnected: boolean) => {
     if (isConnected) {
       return (
@@ -38,7 +39,8 @@ export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload,
     const mappedConnection = connectionsByTab.get(item.tab);
     const isConnected = Boolean(mappedConnection);
     const sourceLabel = mappedConnection?.sourceLabel || "";
-    const metricValue = item.tab === "IKU 003" && isConnected && hasValidData ? `${kpis.avgIkuPercentage.toFixed(2)}%` : "-";
+    const hasValue = item.tab === "IKU 003" && isConnected && hasValidData && typeof kpis?.avgIkuPercentage === "number" && kpis.avgIkuPercentage > 0;
+    const metricValue = hasValue ? `${kpis.avgIkuPercentage.toFixed(2)}%` : "-";
 
     return {
       ...item,
@@ -49,8 +51,87 @@ export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload,
   });
   const connectedCount = overviewRows.filter((item) => item.isConnected).length;
 
+  if (isLoading) {
+    return (
+      <div className="dashboard-overview-skeleton-pulse" style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%" }}>
+        <section className="dashboard-grid dashboard-grid--kpi">
+          <Tile className="iku-kpi-tile">
+            <div className="iku-kpi-tile__label">Indikator Terintegrasi</div>
+            <div style={{ height: "2.5rem", display: "flex", alignItems: "center", margin: "0.375rem 0" }}>
+              <SkeletonText heading width="40%" />
+            </div>
+            <div className="iku-kpi-tile__subtext">
+              <SkeletonText width="80%" />
+            </div>
+          </Tile>
+          <Tile className="iku-kpi-tile">
+            <div className="iku-kpi-tile__label">Total Program Studi</div>
+            <div style={{ height: "2.5rem", display: "flex", alignItems: "center", margin: "0.375rem 0" }}>
+              <SkeletonText heading width="30%" />
+            </div>
+            <div className="iku-kpi-tile__subtext">
+              <SkeletonText width="60%" />
+            </div>
+          </Tile>
+          <Tile className="iku-kpi-tile">
+            <div className="iku-kpi-tile__label">Rata-rata Kinerja (IKU 003)</div>
+            <div style={{ height: "2.5rem", display: "flex", alignItems: "center", margin: "0.375rem 0" }}>
+              <SkeletonText heading width="35%" />
+            </div>
+            <div className="iku-kpi-tile__subtext">
+              <SkeletonText width="70%" />
+            </div>
+          </Tile>
+          <Tile className="iku-kpi-tile">
+            <div className="iku-kpi-tile__label">Status Integrasi</div>
+            <div style={{ height: "2.5rem", display: "flex", alignItems: "center", margin: "0.375rem 0" }}>
+              <SkeletonText heading width="50%" />
+            </div>
+            <div className="iku-kpi-tile__subtext">
+              <SkeletonText width="75%" />
+            </div>
+          </Tile>
+        </section>
+
+        <Tile style={{ padding: "1.5rem", background: "var(--cds-layer-01)", border: "1px solid var(--cds-border-subtle-01)", borderRadius: "0" }}>
+          <h4 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "1rem", color: "var(--cds-text-primary)" }}>
+            Daftar Pencapaian Indikator Kinerja Utama (IKU) Universitas
+          </h4>
+          <div style={{ overflowX: "auto" }}>
+            <Table size="lg">
+              <TableHead>
+                <TableRow>
+                  <TableHeader>Indikator</TableHeader>
+                  <TableHeader>Deskripsi Kinerja Utama</TableHeader>
+                  <TableHeader>Status Sumber</TableHeader>
+                  <TableHeader>Capaian Rata-Rata</TableHeader>
+                  <TableHeader>Aksi Saluran</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <TableRow key={`skeleton-row-${index}`}>
+                    <TableCell><SkeletonText width="50px" /></TableCell>
+                    <TableCell><SkeletonText width="90%" /></TableCell>
+                    <TableCell>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", alignItems: "flex-start" }}>
+                        <SkeletonPlaceholder style={{ width: "100px", height: "18px" }} />
+                      </div>
+                    </TableCell>
+                    <TableCell><SkeletonText width="45px" /></TableCell>
+                    <TableCell><SkeletonPlaceholder style={{ width: "95px", height: "24px" }} /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </Tile>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%" }}>
+    <div className="dashboard-overview-fade-in" style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%" }}>
       <section className="dashboard-grid dashboard-grid--kpi">
         <Tile className="iku-kpi-tile">
           <div className="iku-kpi-tile__label">Indikator Terintegrasi</div>
@@ -102,10 +183,10 @@ export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload,
                   key={item.tab}
                   style={item.tab === "IKU 003" ? { backgroundColor: "var(--cds-layer-hover-01)" } : undefined}
                 >
-                  <TableCell style={{ fontWeight: 600, color: item.tab === "IKU 003" ? "#0f62fe" : undefined }}>
+                  <TableCell style={{ fontWeight: 600 }}>
                     {item.tab}
                   </TableCell>
-                  <TableCell style={item.tab === "IKU 003" ? { fontWeight: 500 } : undefined}>{item.title}</TableCell>
+                  <TableCell>{item.title}</TableCell>
                   <TableCell>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", alignItems: "flex-start" }}>
                       <Tag type={item.isConnected ? "green" : "red"}>

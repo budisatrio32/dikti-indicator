@@ -1370,3 +1370,36 @@ body {
     padding-left: calc(2.25rem - 4px);
   }
 }
+
+// Fade in transition for smooth dashboard loading
+@keyframes dashboardOverviewFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-overview-fade-in {
+  animation: dashboardOverviewFadeIn 0.35s cubic-bezier(0.2, 0, 0.38, 0.9) forwards;
+}
+
+@keyframes dashboardOverviewPulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.dashboard-overview-skeleton-pulse {
+  animation: dashboardOverviewPulse 1.5s ease-in-out infinite;
+}
+

@@ -50,3 +50,17 @@ model DashboardTabConnection {
   @@index([userEmail], map: "dashboard_tab_connections_user_email_idx")
   @@map("dashboard_tab_connections")
 }
+
+model IkuTarget {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userEmail String   @map("user_email")
+  ikuCode   String   @map("iku_code")
+  target    Float
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([userEmail, ikuCode], map: "iku_targets_user_email_iku_code_key")
+  @@index([userEmail], map: "iku_targets_user_email_idx")
+  @@map("iku_targets")
+}
+

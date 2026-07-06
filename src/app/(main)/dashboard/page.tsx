@@ -55,10 +55,25 @@ function MainContentSkeleton() {
 
 const MemoOverviewDashboard = memo(DashboardOverview);
 const MemoPlaceholderDashboard = memo(DashboardPlaceholder);
-const MemoIku003DashboardView = memo(Iku003DashboardView);
-const MemoIku005DashboardView = memo(Iku005DashboardView);
-const MemoIku007DashboardView = memo(Iku007DashboardView);
-const MemoIku009DashboardView = memo(Iku009DashboardView);
+
+// Component and Skeleton Registry for IKU Tabs
+type IkuRegistryItem = {
+  Component: React.ComponentType<{
+    rows: any[];
+    parseStatus: "idle" | "loading" | "success" | "error";
+    errorMessage: string | null;
+  }>;
+  Skeleton: React.ComponentType<{}>;
+};
+
+const IKU_REGISTRY: Record<string, IkuRegistryItem> = {
+  "IKU 001": { Component: memo(Iku001Dashboard), Skeleton: Iku001Skeleton },
+  "IKU 002": { Component: memo(Iku002Dashboard), Skeleton: Iku002Skeleton },
+  "IKU 003": { Component: memo(Iku003DashboardView), Skeleton: Iku003Skeleton },
+  "IKU 005": { Component: memo(Iku005DashboardView), Skeleton: Iku005Skeleton },
+  "IKU 007": { Component: memo(Iku007DashboardView), Skeleton: Iku007Skeleton },
+  "IKU 009": { Component: memo(Iku009DashboardView), Skeleton: Iku009Skeleton },
+};
 
 function DashboardPageContent() {
   const searchParams = useSearchParams();
@@ -118,22 +133,14 @@ function DashboardPageContent() {
       (activeDashboardTab === requestedDashboardTab &&
         requiresDashboardConnectionResolution &&
         !areDashboardConnectionsReady));
-  const initialDashboardLoadingFallback =
-    requestedDashboardTab === "IKU 001" ? (
-      <Iku001Skeleton />
-    ) : requestedDashboardTab === "IKU 002" ? (
-      <Iku002Skeleton />
-    ) : requestedDashboardTab === "IKU 003" ? (
-      <Iku003Skeleton />
-    ) : requestedDashboardTab === "IKU 005" ? (
-      <Iku005Skeleton />
-    ) : requestedDashboardTab === "IKU 007" ? (
-      <Iku007Skeleton />
-    ) : requestedDashboardTab === "IKU 009" ? (
-      <Iku009Skeleton />
-    ) : (
-      <MainContentSkeleton />
-    );
+  const initialDashboardLoadingFallback = useMemo(() => {
+    const registryItem = IKU_REGISTRY[requestedDashboardTab];
+    if (registryItem) {
+      const SkeletonComponent = registryItem.Skeleton;
+      return <SkeletonComponent />;
+    }
+    return <MainContentSkeleton />;
+  }, [requestedDashboardTab]);
 
   const existingConnectionOptions = useMemo(
     () =>
@@ -224,75 +231,52 @@ function DashboardPageContent() {
 
   return (
     <>
-      {isSwitchLoading && <MainContentSkeleton />}
+      {isSwitchLoading && activeDashboardTab !== "Overview" && <MainContentSkeleton />}
 
       {!isSwitchLoading && shouldShowDashboardInitialLoading && initialDashboardLoadingFallback}
 
       {/* View 1: Overview Dashboard */}
-      {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab === "Overview" && (
+      {activeDashboardTab === "Overview" && (
         <MemoOverviewDashboard
           kpis={kpis}
           hasValidData={hasValidData}
           threshold={kpiThreshold}
           onOpenUpload={openUploadModal}
           dashboardConnections={dashboardConnections}
+          isLoading={!areDashboardConnectionsReady || parseStatus === "loading" || isSwitchLoading}
         />
       )}
 
-      {/* View 2: Detailed IKU 003 Dashboard */}
-      {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab === "IKU 003" && Boolean(dashboardTabConnection) && (
-        <MemoIku003DashboardView
-          rows={rows}
-          parseStatus={parseStatus}
-          errorMessage={errorMessage}
-        />
-      )}
+      {/* View 2: Detailed Registered IKU Dashboard or Connection Placeholder */}
+      {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab !== "Overview" && (() => {
+        const registryItem = IKU_REGISTRY[activeDashboardTab];
+        const hasConnection = Boolean(dashboardTabConnection);
 
-      {/* View 2: Detailed IKU 005 Dashboard */}
-      {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab === "IKU 005" && Boolean(dashboardTabConnection) && (
-        <MemoIku005DashboardView
-          rows={rows}
-          parseStatus={parseStatus}
-          errorMessage={errorMessage}
-        />
-      )}
+        if (registryItem && hasConnection) {
+          const IkuComponent = registryItem.Component;
+          return (
+            <IkuComponent
+              rows={rows}
+              parseStatus={parseStatus}
+              errorMessage={errorMessage}
+            />
+          );
+        }
 
-      {/* View 2: Detailed IKU 007 Dashboard */}
-      {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab === "IKU 007" && Boolean(dashboardTabConnection) && (
-        <MemoIku007DashboardView
-          rows={rows}
-          parseStatus={parseStatus}
-          errorMessage={errorMessage}
-        />
-      )}
+        if (activeIkuDetail) {
+          return (
+            <MemoPlaceholderDashboard
+              ikuCode={activeDashboardTab}
+              title={activeIkuDetail.title}
+              description={activeIkuDetail.description}
+              onOpenUpload={openUploadModal}
+              hasConnection={hasConnection}
+            />
+          );
+        }
 
-      {/* View 2: Detailed IKU 009 Dashboard */}
-      {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab === "IKU 009" && Boolean(dashboardTabConnection) && (
-        <MemoIku009DashboardView
-          rows={rows}
-          parseStatus={parseStatus}
-          errorMessage={errorMessage}
-        />
-      )}
-
-      {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab === "IKU 001" && Boolean(dashboardTabConnection) && (
-        <Iku001Dashboard rows={rows} parseStatus={parseStatus} errorMessage={errorMessage} />
-      )}
-
-      {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab === "IKU 002" && Boolean(dashboardTabConnection) && (
-        <Iku002Dashboard rows={rows} parseStatus={parseStatus} errorMessage={errorMessage} />
-      )}
-
-      {/* View 3: Other IKUs Placeholder Connect Portals */}
-      {!isSwitchLoading && !shouldShowDashboardInitialLoading && activeDashboardTab !== "Overview" && !(activeDashboardTab === "IKU 001" && Boolean(dashboardTabConnection)) && !(activeDashboardTab === "IKU 002" && Boolean(dashboardTabConnection)) && !(activeDashboardTab === "IKU 003" && Boolean(dashboardTabConnection)) && !(activeDashboardTab === "IKU 005" && Boolean(dashboardTabConnection)) && !(activeDashboardTab === "IKU 007" && Boolean(dashboardTabConnection)) && !(activeDashboardTab === "IKU 009" && Boolean(dashboardTabConnection)) && activeIkuDetail && (
-        <MemoPlaceholderDashboard
-          ikuCode={activeDashboardTab}
-          title={activeIkuDetail.title}
-          description={activeIkuDetail.description}
-          onOpenUpload={openUploadModal}
-          hasConnection={Boolean(dashboardTabConnection)}
-        />
-      )}
+        return null;
+      })()}
 
       <Modal
         open={isConnectExistingModalOpen}

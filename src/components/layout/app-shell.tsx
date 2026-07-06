@@ -47,6 +47,7 @@ const activityItems = [
   { id: "visual", label: "Visualizations", icon: ChartBar, href: "/dashboard" },
   { id: "quality", label: "Data Quality", icon: Certificate, href: "/quality" },
   { id: "data", label: "Data Source", icon: DataTable, href: "/data" },
+  { id: "settings", label: "Settings", icon: Settings, href: "#" },
 ] as const;
 
 const ACCEPTED = [".csv", ".xlsx", ".xls"];
@@ -59,6 +60,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const uid = useId();
+
+  // Profile Dropdown Menu States
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; avatarUrl?: string } | null>(null);
   const {
     columns,
     activeFileName,
@@ -85,10 +91,116 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [isExecutiveDashboardMenuOpen, setIsExecutiveDashboardMenuOpen] = useState(false);
   const [isQsRankingMenuOpen, setIsQsRankingMenuOpen] = useState(false);
 
-  // Profile Dropdown Menu States
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const profileMenuRef = useRef<HTMLDivElement | null>(null);
-  const [currentUser, setCurrentUser] = useState<{ name: string; email: string; avatarUrl?: string } | null>(null);
+  // Settings Modal States
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [hasSetTargets, setHasSetTargets] = useState(true);
+  const [areTargetsLoaded, setAreTargetsLoaded] = useState(false);
+  const ikuTargets = useDashboardStore((state) => state.ikuTargets);
+  const setIkuTarget = useDashboardStore((state) => state.setIkuTarget);
+  const [tempIkuTargets, setTempIkuTargets] = useState<Record<string, string>>({
+    "IKU 001": "80",
+    "IKU 002": "80",
+    "IKU 003": "80",
+    "IKU 005": "80",
+    "IKU 007": "80",
+    "IKU 009": "80",
+  });
+
+  // Reset target loaded status if user session goes away
+  useEffect(() => {
+    if (!currentUser?.email) {
+      setHasSetTargets(true);
+      setAreTargetsLoaded(false);
+    }
+  }, [currentUser?.email]);
+
+  useEffect(() => {
+    if (isSettingsModalOpen) {
+      const targetsStr: Record<string, string> = {};
+      Object.entries(ikuTargets).forEach(([key, val]) => {
+        targetsStr[key] = String(val);
+      });
+      setTempIkuTargets(targetsStr);
+    }
+  }, [isSettingsModalOpen, ikuTargets]);
+
+  // Load IKU targets from database on mount or when currentUser email changes
+  useEffect(() => {
+    if (!currentUser?.email) return;
+
+    const loadIkuTargets = async () => {
+      try {
+        const resp = await fetch(`/api/iku-targets?userEmail=${encodeURIComponent(currentUser.email)}`, {
+          cache: "no-store",
+        });
+        if (!resp.ok) {
+          setHasSetTargets(false);
+          setAreTargetsLoaded(true);
+          return;
+        }
+        const json = await resp.json();
+        const keys = json.targets ? Object.keys(json.targets) : [];
+        if (keys.length > 0) {
+          Object.entries(json.targets).forEach(([key, val]) => {
+            setIkuTarget(key, Number(val));
+          });
+          setHasSetTargets(true);
+        } else {
+          setHasSetTargets(false);
+        }
+      } catch {
+        setHasSetTargets(false);
+      } finally {
+        setAreTargetsLoaded(true);
+      }
+    };
+
+    void loadIkuTargets();
+  }, [currentUser?.email, setIkuTarget]);
+
+  const handleSaveSettings = async () => {
+    const email = getSessionEmail();
+    if (!email) return;
+
+    const targetsNum: Record<string, number> = {};
+    Object.entries(tempIkuTargets).forEach(([key, val]) => {
+      targetsNum[key] = val === "" ? 80 : Number(val);
+    });
+
+    try {
+      const resp = await fetch("/api/iku-targets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userEmail: email,
+          targets: targetsNum
+        })
+      });
+      if (resp.ok) {
+        Object.entries(targetsNum).forEach(([key, val]) => {
+          setIkuTarget(key, val);
+        });
+        setHasSetTargets(true);
+        setIsSettingsModalOpen(false);
+      } else {
+        setAlertModal({
+          isOpen: true,
+          title: "Gagal Menyimpan",
+          description: "Gagal menyimpan target IKU ke database. Silakan coba lagi.",
+          kind: "danger"
+        });
+      }
+    } catch {
+      setAlertModal({
+        isOpen: true,
+        title: "Kesalahan Koneksi",
+        description: "Gagal menghubungi server untuk menyimpan target IKU.",
+        kind: "danger"
+      });
+    }
+  };
+
+
 
   // Modal States
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -338,6 +450,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   else if (pathname === "/dashboard") activeActivity = "visual";
 
   const handleActivityClick = (id: string, href: string) => {
+    if (!hasSetTargets) {
+      setIsSettingsModalOpen(true);
+      return;
+    }
+    if (id === "settings") {
+      setIsSettingsModalOpen(true);
+      return;
+    }
     router.push(href);
   };
 
@@ -1070,6 +1190,64 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               hideCloseButton
             />
           )}
+        </div>
+      </Modal>
+
+      {/* ── Modal Box 4: Settings Modal ── */}
+      <Modal
+        open={isSettingsModalOpen || (areTargetsLoaded && !hasSetTargets)}
+        modalHeading="Pengaturan Target Kinerja Utama (IKU)"
+        primaryButtonText="Simpan Perubahan"
+        secondaryButtonText={hasSetTargets ? "Batal" : undefined}
+        onRequestClose={() => {
+          if (hasSetTargets) {
+            setIsSettingsModalOpen(false);
+          }
+        }}
+        onRequestSubmit={handleSaveSettings}
+        preventCloseOnClickOutside={!hasSetTargets}
+        size="sm"
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", padding: "0.5rem 0" }}>
+          {!hasSetTargets && (
+            <InlineNotification
+              kind="warning"
+              title="Target IKU Diperlukan"
+              subtitle="Anda harus menentukan target pencapaian IKU terlebih dahulu sebelum dapat mengakses fitur sistem lainnya."
+              lowContrast
+              hideCloseButton
+            />
+          )}
+          <p style={{ fontSize: "0.875rem", color: "var(--cds-text-secondary, #525252)", lineHeight: "1.5", margin: 0 }}>
+            Tentukan ambang batas target keberhasilan (%) untuk masing-masing indikator kinerja utama.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+            {(["IKU 001", "IKU 002", "IKU 003", "IKU 005", "IKU 007", "IKU 009"] as const).map((iku) => (
+              <TextInput
+                key={iku}
+                id={`target-${iku.replace(/\s+/g, "-")}`}
+                labelText={`Target ${iku} (%)`}
+                type="text"
+                value={tempIkuTargets[iku] ?? ""}
+                onChange={(e) => {
+                  const cleanVal = e.target.value.replace(/[^0-9]/g, "");
+                  let finalVal = cleanVal;
+                  if (cleanVal !== "") {
+                    const num = Number(cleanVal);
+                    if (num > 100) {
+                      finalVal = "100";
+                    } else {
+                      finalVal = String(num);
+                    }
+                  }
+                  setTempIkuTargets((prev) => ({
+                    ...prev,
+                    [iku]: finalVal
+                  }));
+                }}
+              />
+            ))}
+          </div>
         </div>
       </Modal>
 

@@ -23,6 +23,7 @@ import {
   DataTable,
 } from "@carbon/react";
 import { Download, Filter } from "@carbon/icons-react";
+import { useDashboardStore } from "@/store/dashboard-store";
 import {
   Bar,
   BarChart,
@@ -204,6 +205,7 @@ export function Iku003Skeleton() {
 }
 
 export function Iku003DashboardView({ rows, parseStatus, errorMessage }: Props) {
+  const threshold = useDashboardStore((state) => state.ikuTargets["IKU 003"]) ?? 80;
   const parsedRows = useMemo<Iku003Row[]>(() => {
     if (!rows.length) return [];
 
@@ -440,7 +442,6 @@ export function Iku003DashboardView({ rows, parseStatus, errorMessage }: Props) 
     }));
     const topFaculty = facultyAverages.sort((a, b) => b.avg - a.avg)[0];
 
-    const threshold = 80;
     const belowThreshold = filteredRows.filter((row) => row.ikuPercentage < threshold);
 
     return {
@@ -450,7 +451,7 @@ export function Iku003DashboardView({ rows, parseStatus, errorMessage }: Props) 
       belowThreshold,
       threshold,
     };
-  }, [filteredRows]);
+  }, [filteredRows, threshold]);
 
   const totalActiveStudents = useMemo(() => filteredRows.reduce((acc, r) => acc + r.totalStudents, 0), [filteredRows]);
   const totalMbkm = useMemo(() => filteredRows.reduce((acc, r) => acc + r.mbkm, 0), [filteredRows]);
