@@ -93,3 +93,28 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Gagal menyimpan koneksi dashboard." }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const url = new URL(request.url);
+    const userEmail = (url.searchParams.get("userEmail") || "").trim().toLowerCase();
+    const dashboardTab = (url.searchParams.get("dashboardTab") || "").trim();
+
+    if (!userEmail || !dashboardTab) {
+      return NextResponse.json({ error: "userEmail dan dashboardTab wajib diisi." }, { status: 400 });
+    }
+
+    await prisma.dashboardTabConnection.delete({
+      where: {
+        userEmail_dashboardTab: {
+          userEmail,
+          dashboardTab
+        }
+      }
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    return NextResponse.json({ error: "Gagal mencabut koneksi dashboard." }, { status: 500 });
+  }
+}

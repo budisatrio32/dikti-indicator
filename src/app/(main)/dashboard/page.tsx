@@ -79,6 +79,8 @@ function DashboardPageContent() {
   const searchParams = useSearchParams();
   const { kpis, chartData, rankingTop, rankingBottom, insights } = useDashboardMetrics();
   const rows = useDashboardStore((state) => state.rows);
+  const columns = useDashboardStore((state) => state.columns);
+  const profile = useDashboardStore((state) => state.profile);
   const kpiThreshold = useDashboardStore((state) => state.kpiThreshold);
   const ikuTargets = useDashboardStore((state) => state.ikuTargets);
   const activeDashboardTab = useDashboardStore((state) => state.activeDashboardTab);
@@ -225,6 +227,30 @@ function DashboardPageContent() {
     );
     setIsConnectExistingModalOpen(false);
   };
+
+  const handleDisconnectConnection = async (tab: string) => {
+    if (!userEmail) return;
+
+    try {
+      const resp = await fetch(`/api/dashboard-connections?userEmail=${encodeURIComponent(userEmail)}&dashboardTab=${encodeURIComponent(tab)}`, {
+        method: "DELETE"
+      });
+
+      if (resp.ok) {
+        const filtered = dashboardConnections.filter((connection) => connection.dashboardTab !== tab);
+        setDashboardTabConnections(filtered);
+        
+        window.dispatchEvent(
+          new CustomEvent("app:select-source", {
+            detail: { sourceId: null },
+          }),
+        );
+      }
+    } catch (error) {
+      console.error("Failed to disconnect dataset:", error);
+    }
+  };
+
   const activeIkuDetail =
     activeDashboardTab !== "Overview"
       ? ikuDashboardDetails[activeDashboardTab as keyof typeof ikuDashboardDetails]
@@ -246,6 +272,9 @@ function DashboardPageContent() {
           dashboardConnections={dashboardConnections}
           isLoading={!areDashboardConnectionsReady || parseStatus === "loading" || isSwitchLoading}
           ikuTargets={ikuTargets}
+          profile={profile}
+          columns={columns}
+          onDisconnect={handleDisconnectConnection}
         />
       )}
 
