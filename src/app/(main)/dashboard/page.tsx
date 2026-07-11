@@ -80,6 +80,7 @@ function DashboardPageContent() {
   const { kpis, chartData, rankingTop, rankingBottom, insights } = useDashboardMetrics();
   const rows = useDashboardStore((state) => state.rows);
   const kpiThreshold = useDashboardStore((state) => state.kpiThreshold);
+  const ikuTargets = useDashboardStore((state) => state.ikuTargets);
   const activeDashboardTab = useDashboardStore((state) => state.activeDashboardTab);
   const parseStatus = useDashboardStore((state) => state.parseStatus);
   const errorMessage = useDashboardStore((state) => state.errorMessage);
@@ -244,6 +245,7 @@ function DashboardPageContent() {
           onOpenUpload={openUploadModal}
           dashboardConnections={dashboardConnections}
           isLoading={!areDashboardConnectionsReady || parseStatus === "loading" || isSwitchLoading}
+          ikuTargets={ikuTargets}
         />
       )}
 

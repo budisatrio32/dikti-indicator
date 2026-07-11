@@ -15,9 +15,15 @@ type Props = {
   onOpenUpload: () => void;
   dashboardConnections: DashboardTabConnection[];
   isLoading?: boolean;
+  ikuTargets?: Record<string, number>;
 };
 
-export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload, dashboardConnections, isLoading = false }: Props) {
+export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload, dashboardConnections, isLoading = false, ikuTargets = {} }: Props) {
+  const ikuKeys = Object.keys(ikuTargets);
+  const registeredCount = ikuKeys.length;
+  const sumTargets = ikuKeys.reduce((sum, key) => sum + (ikuTargets[key] ?? 0), 0);
+  const avgTarget = registeredCount > 0 ? sumTargets / registeredCount : threshold;
+
   const renderChannelAction = (isConnected: boolean) => {
     if (isConnected) {
       return (
@@ -147,10 +153,10 @@ export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload,
         </Tile>
         <Tile className="iku-kpi-tile">
           <div className="iku-kpi-tile__label">Rata-rata Capaian Kinerja</div>
-          <div className="iku-kpi-tile__value" style={{ color: hasValidData && kpis.avgIkuPercentage >= threshold ? "#198038" : "inherit" }}>
+          <div className="iku-kpi-tile__value" style={{ color: hasValidData && kpis.avgIkuPercentage >= avgTarget ? "#198038" : "inherit" }}>
             {hasValidData ? `${kpis.avgIkuPercentage.toFixed(2)}%` : "0.00%"}
           </div>
-          <div className="iku-kpi-tile__subtext">Terhadap ambang batas rata-rata: {threshold}%</div>
+          <div className="iku-kpi-tile__subtext">Target rata-rata {registeredCount} IKU terdaftar: {avgTarget.toFixed(1)}%</div>
         </Tile>
         <Tile className="iku-kpi-tile">
           <div className="iku-kpi-tile__label">Status Integrasi</div>
