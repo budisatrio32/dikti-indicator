@@ -70,14 +70,25 @@ export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload,
     const mappedConnection = connectionsByTab.get(item.tab);
     const isConnected = Boolean(mappedConnection);
     const sourceLabel = mappedConnection?.sourceLabel || "";
+
+    const target = ikuTargets[item.tab] ?? threshold;
     const hasValue = item.tab === "IKU 003" && isConnected && hasValidData && typeof kpis?.avgIkuPercentage === "number" && kpis.avgIkuPercentage > 0;
     const metricValue = hasValue ? `${kpis.avgIkuPercentage.toFixed(2)}%` : "-";
+
+    let targetText = "";
+    if (hasValue) {
+      const pctOfTarget = (kpis.avgIkuPercentage / target) * 100;
+      targetText = `${pctOfTarget.toFixed(2)}% dari target ${target}%`;
+    } else {
+      targetText = `Target: ${target}%`;
+    }
 
     return {
       ...item,
       isConnected,
       sourceLabel,
       metricValue,
+      targetText,
     };
   });
   const connectedCount = overviewRows.filter((item) => item.isConnected).length;
@@ -229,7 +240,12 @@ export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload,
                     </div>
                   </TableCell>
                   <TableCell style={{ fontWeight: item.metricValue !== "-" ? 600 : undefined, fontFamily: "monospace" }}>
-                    {item.metricValue}
+                    <div style={{ fontSize: "0.875rem" }}>{item.metricValue}</div>
+                    {item.targetText && (
+                      <div style={{ fontSize: "0.75rem", fontWeight: 400, color: "var(--cds-text-secondary)", marginTop: "0.25rem", fontFamily: "sans-serif" }}>
+                        {item.targetText}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>{renderChannelAction(item.tab, item.isConnected)}</TableCell>
                 </TableRow>
