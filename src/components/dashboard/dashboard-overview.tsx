@@ -74,7 +74,7 @@ export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload,
             </div>
           </Tile>
           <Tile className="iku-kpi-tile">
-            <div className="iku-kpi-tile__label">Rata-rata Kinerja (IKU 003)</div>
+            <div className="iku-kpi-tile__label">Rata-rata Capaian Kinerja</div>
             <div style={{ height: "2.5rem", display: "flex", alignItems: "center", margin: "0.375rem 0" }}>
               <SkeletonText heading width="35%" />
             </div>
@@ -146,11 +146,11 @@ export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload,
           <div className="iku-kpi-tile__subtext">Terpantau aktif dalam sistem</div>
         </Tile>
         <Tile className="iku-kpi-tile">
-          <div className="iku-kpi-tile__label">Rata-rata Kinerja (IKU 003)</div>
+          <div className="iku-kpi-tile__label">Rata-rata Capaian Kinerja</div>
           <div className="iku-kpi-tile__value" style={{ color: hasValidData && kpis.avgIkuPercentage >= threshold ? "#198038" : "inherit" }}>
             {hasValidData ? `${kpis.avgIkuPercentage.toFixed(2)}%` : "0.00%"}
           </div>
-          <div className="iku-kpi-tile__subtext">Target kelulusan ambang batas: {threshold}%</div>
+          <div className="iku-kpi-tile__subtext">Terhadap ambang batas rata-rata: {threshold}%</div>
         </Tile>
         <Tile className="iku-kpi-tile">
           <div className="iku-kpi-tile__label">Status Integrasi</div>
