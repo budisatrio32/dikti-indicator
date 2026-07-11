@@ -19,7 +19,9 @@ import {
   Dropdown,
   TextInput,
   InlineNotification,
-  Loading
+  Loading,
+  Select,
+  SelectItem
 } from "@carbon/react";
 import {
   ChartBar,
@@ -55,6 +57,23 @@ const ACCEPTED = [".csv", ".xlsx", ".xls"];
 async function loadSpreadsheetParser() {
   return import("@/lib/spreadsheet-parser");
 }
+
+const isValidGoogleSheetsUrl = (url: string) => {
+  try {
+    const parsed = new URL(url.trim());
+    return (
+      parsed.hostname === "docs.google.com" &&
+      parsed.pathname.startsWith("/spreadsheets/d/")
+    );
+  } catch {
+    return false;
+  }
+};
+
+const getSheetNameFromUrl = (url: string): string | null => {
+  const match = url.match(/[#?&]sheet=([^&]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+};
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -216,6 +235,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [editName, setEditName] = useState("");
   const [editUrl, setEditUrl] = useState("");
   const [confirmDeleteConnId, setConfirmDeleteConnId] = useState<string | null>(null);
+
+  // Sheets Selection States
+  const [newConnSheets, setNewConnSheets] = useState<string[]>([]);
+  const [selectedNewConnSheet, setSelectedNewConnSheet] = useState("");
+  const [isLoadingNewConnSheets, setIsLoadingNewConnSheets] = useState(false);
+
+  const [editConnSheets, setEditConnSheets] = useState<string[]>([]);
+  const [selectedEditConnSheet, setSelectedEditConnSheet] = useState("");
+  const [isLoadingEditConnSheets, setIsLoadingEditConnSheets] = useState(false);
 
   // Dynamic Alert Modal States
   const [alertModal, setAlertModal] = useState<{
@@ -504,6 +532,80 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     setActiveSourceUrl(activeSource);
   }, [activeSource]);
 
+  // Load sheets for New Connection URL in background
+  useEffect(() => {
+    const trimmedUrl = newConnUrl.trim();
+    if (!isValidGoogleSheetsUrl(trimmedUrl)) {
+      setNewConnSheets([]);
+      setSelectedNewConnSheet("");
+      return;
+    }
+
+    let active = true;
+    const fetchSheets = async () => {
+      setIsLoadingNewConnSheets(true);
+      try {
+        const { fetchSpreadsheetSheets } = await loadSpreadsheetParser();
+        const sheets = await fetchSpreadsheetSheets(trimmedUrl);
+        if (active) {
+          setNewConnSheets(sheets);
+          const urlSheet = getSheetNameFromUrl(trimmedUrl);
+          if (urlSheet && sheets.includes(urlSheet)) {
+            setSelectedNewConnSheet(urlSheet);
+          } else if (sheets.length > 0) {
+            setSelectedNewConnSheet(sheets[0]);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load sheets:", err);
+      } finally {
+        if (active) setIsLoadingNewConnSheets(false);
+      }
+    };
+
+    void fetchSheets();
+    return () => {
+      active = false;
+    };
+  }, [newConnUrl]);
+
+  // Load sheets for Edit Connection URL in background
+  useEffect(() => {
+    const trimmedUrl = editUrl.trim();
+    if (!isValidGoogleSheetsUrl(trimmedUrl)) {
+      setEditConnSheets([]);
+      setSelectedEditConnSheet("");
+      return;
+    }
+
+    let active = true;
+    const fetchSheets = async () => {
+      setIsLoadingEditConnSheets(true);
+      try {
+        const { fetchSpreadsheetSheets } = await loadSpreadsheetParser();
+        const sheets = await fetchSpreadsheetSheets(trimmedUrl);
+        if (active) {
+          setEditConnSheets(sheets);
+          const urlSheet = getSheetNameFromUrl(trimmedUrl);
+          if (urlSheet && sheets.includes(urlSheet)) {
+            setSelectedEditConnSheet(urlSheet);
+          } else if (sheets.length > 0) {
+            setSelectedEditConnSheet(sheets[0]);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load sheets:", err);
+      } finally {
+        if (active) setIsLoadingEditConnSheets(false);
+      }
+    };
+
+    void fetchSheets();
+    return () => {
+      active = false;
+    };
+  }, [editUrl]);
+
   // Upload Local File Handler
   const handleUploadFile = async (file?: File) => {
     if (!file) return;
@@ -538,9 +640,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       setIsParsing(true);
       setLoading();
 
+      let finalUrl = newConnUrl.trim();
+      if (isValidGoogleSheetsUrl(finalUrl) && selectedNewConnSheet) {
+        const baseUrl = finalUrl.split("#")[0].split("?")[0];
+        finalUrl = `${baseUrl}#sheet=${encodeURIComponent(selectedNewConnSheet)}`;
+      }
+
       const newId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 9);
       const { parseSpreadsheetUrl } = await loadSpreadsheetParser();
-      const { rows: parsedRows, columns: parsedColumns } = await parseSpreadsheetUrl(newConnUrl);
+      const { rows: parsedRows, columns: parsedColumns } = await parseSpreadsheetUrl(finalUrl);
       setData(parsedRows, parsedColumns);
       setActiveFileName(newConnName.trim());
       setActiveSource(newId);
@@ -553,7 +661,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           id: newId,
           type: "sheet",
           name: newConnName.trim(),
-          url: newConnUrl.trim(),
+          url: finalUrl,
         },
       ];
       const saved = await saveConnections(nextConn);
@@ -602,15 +710,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     setEditingConn(conn);
     setEditName(conn.name);
     setEditUrl(conn.url);
+
+    const urlSheet = getSheetNameFromUrl(conn.url);
+    if (urlSheet) {
+      setSelectedEditConnSheet(urlSheet);
+    } else {
+      setSelectedEditConnSheet("");
+    }
+
     setIsEditModalOpen(true);
   };
 
   const handleSaveEdit = () => {
     if (!editingConn) return;
 
+    let finalUrl = editUrl.trim();
+    if (isValidGoogleSheetsUrl(finalUrl) && selectedEditConnSheet) {
+      const baseUrl = finalUrl.split("#")[0].split("?")[0];
+      finalUrl = `${baseUrl}#sheet=${encodeURIComponent(selectedEditConnSheet)}`;
+    }
+
     const nextConn: SheetConnection[] = connections.map((c) =>
       c.id === editingConn.id
-        ? { ...c, name: editName.trim(), url: editUrl.trim(), type: "sheet" }
+        ? { ...c, name: editName.trim(), url: finalUrl, type: "sheet" }
         : c
     );
     void saveConnections(nextConn);
@@ -1063,7 +1185,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           setIsUploadModalOpen(false);
         }}
         onRequestSubmit={() => void handleConnectSpreadsheet()}
-        primaryButtonDisabled={isParsing || !newConnName.trim() || !newConnUrl.trim()}
+        primaryButtonDisabled={isParsing || !newConnName.trim() || !newConnUrl.trim() || isLoadingNewConnSheets}
         size="md"
       >
         {isParsing ? (
@@ -1091,6 +1213,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   value={newConnUrl}
                   onChange={(e) => setNewConnUrl(e.target.value)}
                 />
+                {isValidGoogleSheetsUrl(newConnUrl) && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    {isLoadingNewConnSheets ? (
+                      <span style={{ fontSize: "0.75rem", color: "var(--cds-text-helper)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                        <Loading withOverlay={false} small description="Memuat sheet..." style={{ width: "16px", height: "16px" }} />
+                        Mengambil daftar sheet...
+                      </span>
+                    ) : newConnSheets.length > 0 ? (
+                      <Select
+                        id={`${uid}-modal-conn-sheet`}
+                        labelText="Pilih Sheet (Worksheet)"
+                        value={selectedNewConnSheet}
+                        onChange={(e) => setSelectedNewConnSheet(e.target.value)}
+                        size="md"
+                      >
+                        {newConnSheets.map((sheet) => (
+                          <SelectItem key={sheet} value={sheet} text={sheet} />
+                        ))}
+                      </Select>
+                    ) : (
+                      <span style={{ fontSize: "0.75rem", color: "var(--cds-text-error, #da1e28)" }}>
+                        Gagal memuat sheet. Pastikan akses publik spreadsheet terbuka.
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
               <p style={{ fontSize: "0.75rem", color: "var(--cds-text-helper)", margin: 0, display: "flex", alignItems: "flex-start", gap: "0.375rem" }}>
                 <Information size={14} aria-hidden="true" style={{ color: "#0f62fe", flexShrink: 0, marginTop: "1px" }} />
@@ -1149,7 +1297,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         secondaryButtonText="Batal"
         onRequestClose={() => setIsEditModalOpen(false)}
         onRequestSubmit={handleSaveEdit}
-        primaryButtonDisabled={!editName.trim() || !editUrl.trim()}
+        primaryButtonDisabled={!editName.trim() || !editUrl.trim() || isLoadingEditConnSheets}
         size="sm"
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem", padding: "0.5rem 0" }}>
@@ -1165,6 +1313,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             value={editUrl}
             onChange={(e) => setEditUrl(e.target.value)}
           />
+          {isValidGoogleSheetsUrl(editUrl) && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              {isLoadingEditConnSheets ? (
+                <span style={{ fontSize: "0.75rem", color: "var(--cds-text-helper)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                  <Loading withOverlay={false} small description="Memuat sheet..." style={{ width: "16px", height: "16px" }} />
+                  Mengambil daftar sheet...
+                </span>
+              ) : editConnSheets.length > 0 ? (
+                <Select
+                  id={`${uid}-edit-conn-sheet`}
+                  labelText="Pilih Sheet (Worksheet)"
+                  value={selectedEditConnSheet}
+                  onChange={(e) => setSelectedEditConnSheet(e.target.value)}
+                  size="md"
+                >
+                  {editConnSheets.map((sheet) => (
+                    <SelectItem key={sheet} value={sheet} text={sheet} />
+                  ))}
+                </Select>
+              ) : (
+                <span style={{ fontSize: "0.75rem", color: "var(--cds-text-error, #da1e28)" }}>
+                  Gagal memuat sheet. Pastikan akses publik spreadsheet terbuka.
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </Modal>
 
