@@ -94,6 +94,7 @@ function DashboardPageContent() {
   const [isConnectExistingModalOpen, setIsConnectExistingModalOpen] = useState(false);
   const [selectedExistingConnection, setSelectedExistingConnection] = useState<ExistingConnectionOption | null>(null);
   const [userEmail, setUserEmail] = useState("");
+  const [connectingTab, setConnectingTab] = useState<string | null>(null);
   const previousTabRef = useRef(activeDashboardTab);
 
   const hasValidData = rows.length > 0 && chartData.length > 0;
@@ -184,7 +185,8 @@ function DashboardPageContent() {
     [chartData],
   );
 
-  const openUploadModal = useCallback(() => {
+  const openUploadModal = useCallback((tab: string) => {
+    setConnectingTab(tab);
     setSelectedExistingConnection(null);
     setIsConnectExistingModalOpen(true);
   }, []);
@@ -196,13 +198,15 @@ function DashboardPageContent() {
   const handleConnectExistingSource = async () => {
     if (!selectedExistingConnection || !userEmail) return;
 
-    if (activeDashboardTab !== "Overview") {
+    const targetTab = connectingTab || activeDashboardTab;
+
+    if (targetTab && targetTab !== "Overview") {
       const resp = await fetch("/api/dashboard-connections", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userEmail,
-          dashboardTab: activeDashboardTab,
+          dashboardTab: targetTab,
           sourceId: selectedExistingConnection.id,
           sourceLabel: selectedExistingConnection.label
         })
@@ -224,6 +228,7 @@ function DashboardPageContent() {
       }),
     );
     setIsConnectExistingModalOpen(false);
+    setConnectingTab(null);
   };
 
   const handleDisconnectConnection = async (tab: string) => {
@@ -296,7 +301,7 @@ function DashboardPageContent() {
               ikuCode={activeDashboardTab}
               title={activeIkuDetail.title}
               description={activeIkuDetail.description}
-              onOpenUpload={openUploadModal}
+              onOpenUpload={() => openUploadModal(activeDashboardTab)}
               hasConnection={hasConnection}
             />
           );

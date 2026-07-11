@@ -13,7 +13,7 @@ type Props = {
   kpis: OverviewKpis;
   hasValidData: boolean;
   threshold: number;
-  onOpenUpload: () => void;
+  onOpenUpload: (tab: string) => void;
   dashboardConnections: DashboardTabConnection[];
   isLoading?: boolean;
   ikuTargets?: Record<string, number>;
@@ -37,7 +37,7 @@ export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload,
             renderIcon={Link}
             iconDescription="Kelola / Ubah Koneksi"
             tooltipPosition="top"
-            onClick={onOpenUpload}
+            onClick={() => onOpenUpload(tab)}
           />
           <Button
             kind="danger--ghost"
@@ -60,7 +60,7 @@ export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload,
         renderIcon={Link}
         iconDescription="Hubungkan Dataset"
         tooltipPosition="top"
-        onClick={onOpenUpload}
+        onClick={() => onOpenUpload(tab)}
       />
     );
   };
