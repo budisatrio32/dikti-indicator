@@ -93,7 +93,6 @@ function DashboardPageContent() {
   const [isSwitchLoading, setIsSwitchLoading] = useState(false);
   const [isConnectExistingModalOpen, setIsConnectExistingModalOpen] = useState(false);
   const [selectedExistingConnection, setSelectedExistingConnection] = useState<ExistingConnectionOption | null>(null);
-  const [userEmail, setUserEmail] = useState("");
   const [connectingTab, setConnectingTab] = useState<string | null>(null);
   const previousTabRef = useRef(activeDashboardTab);
 
@@ -111,9 +110,7 @@ function DashboardPageContent() {
     return () => window.clearTimeout(timeout);
   }, [activeDashboardTab]);
 
-  useEffect(() => {
-    setUserEmail(getSessionUserEmail());
-  }, []);
+
 
   const dashboardTabConnection = useMemo(
     () =>
@@ -196,7 +193,8 @@ function DashboardPageContent() {
   }, []);
 
   const handleConnectExistingSource = async () => {
-    if (!selectedExistingConnection || !userEmail) return;
+    const email = getSessionUserEmail();
+    if (!selectedExistingConnection || !email) return;
 
     const targetTab = connectingTab || activeDashboardTab;
 
@@ -205,7 +203,7 @@ function DashboardPageContent() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userEmail,
+          userEmail: email,
           dashboardTab: targetTab,
           sourceId: selectedExistingConnection.id,
           sourceLabel: selectedExistingConnection.label
@@ -232,10 +230,11 @@ function DashboardPageContent() {
   };
 
   const handleDisconnectConnection = async (tab: string) => {
-    if (!userEmail) return;
+    const email = getSessionUserEmail();
+    if (!email) return;
 
     try {
-      const resp = await fetch(`/api/dashboard-connections?userEmail=${encodeURIComponent(userEmail)}&dashboardTab=${encodeURIComponent(tab)}`, {
+      const resp = await fetch(`/api/dashboard-connections?userEmail=${encodeURIComponent(email)}&dashboardTab=${encodeURIComponent(tab)}`, {
         method: "DELETE"
       });
 
