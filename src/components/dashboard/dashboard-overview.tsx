@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tag, Tile, SkeletonText, SkeletonPlaceholder, Modal } from "@carbon/react";
+import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Tag, Tile, SkeletonText, SkeletonPlaceholder } from "@carbon/react";
 import { overviewDashboardItems, type DashboardTabConnection } from "@/lib/dashboard-config";
-import { detectCanonicalKey } from "@/lib/normalization";
-import type { DataProfile } from "@/types/data";
-import { Link, Unlink, Search } from "@carbon/icons-react";
+import { Link, Unlink } from "@carbon/icons-react";
 
 type OverviewKpis = {
   totalStudyProgram: number;
@@ -20,30 +17,16 @@ type Props = {
   dashboardConnections: DashboardTabConnection[];
   isLoading?: boolean;
   ikuTargets?: Record<string, number>;
-  profile?: DataProfile | null;
-  columns?: string[];
   onDisconnect?: (tab: string) => void;
 };
 
-export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload, dashboardConnections, isLoading = false, ikuTargets = {}, profile = null, columns = [], onDisconnect }: Props) {
+export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload, dashboardConnections, isLoading = false, ikuTargets = {}, onDisconnect }: Props) {
   const ikuKeys = Object.keys(ikuTargets);
   const registeredCount = ikuKeys.length;
   const sumTargets = ikuKeys.reduce((sum, key) => sum + (ikuTargets[key] ?? 0), 0);
   const avgTarget = registeredCount > 0 ? sumTargets / registeredCount : threshold;
 
-  const [isDetectModalOpen, setIsDetectModalOpen] = useState(false);
-  const [activeDetectTab, setActiveDetectTab] = useState("");
-  const [activeDetectTitle, setActiveDetectTitle] = useState("");
-  const [activeDetectSource, setActiveDetectSource] = useState("");
-
-  const handleDetectDataset = (tab: string, title: string, source: string) => {
-    setActiveDetectTab(tab);
-    setActiveDetectTitle(title);
-    setActiveDetectSource(source);
-    setIsDetectModalOpen(true);
-  };
-
-  const renderChannelAction = (tab: string, title: string, sourceLabel: string, isConnected: boolean) => {
+  const renderChannelAction = (tab: string, isConnected: boolean) => {
     if (isConnected) {
       return (
         <div style={{ display: "flex", gap: "0.25rem" }}>
@@ -55,15 +38,6 @@ export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload,
             iconDescription="Kelola / Ubah Koneksi"
             tooltipPosition="top"
             onClick={onOpenUpload}
-          />
-          <Button
-            kind="ghost"
-            size="sm"
-            hasIconOnly
-            renderIcon={Search}
-            iconDescription="Deteksi Dataset"
-            tooltipPosition="top"
-            onClick={() => handleDetectDataset(tab, title, sourceLabel)}
           />
           <Button
             kind="danger--ghost"
@@ -257,100 +231,13 @@ export function DashboardOverview({ kpis, hasValidData, threshold, onOpenUpload,
                   <TableCell style={{ fontWeight: item.metricValue !== "-" ? 600 : undefined, fontFamily: "monospace" }}>
                     {item.metricValue}
                   </TableCell>
-                  <TableCell>{renderChannelAction(item.tab, item.title, item.sourceLabel, item.isConnected)}</TableCell>
+                  <TableCell>{renderChannelAction(item.tab, item.isConnected)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       </Tile>
-
-      {/* ── Modal Box: Dataset detection modal ── */}
-      <Modal
-        open={isDetectModalOpen}
-        modalHeading={`Deteksi Struktur Dataset - ${activeDetectTab}`}
-        primaryButtonText="Tutup"
-        onRequestClose={() => setIsDetectModalOpen(false)}
-        onRequestSubmit={() => setIsDetectModalOpen(false)}
-        size="md"
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem", padding: "0.25rem 0" }}>
-          <div>
-            <h5 style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--cds-text-primary)", margin: "0 0 0.25rem 0" }}>
-              {activeDetectTitle}
-            </h5>
-            <p style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)", margin: 0 }}>
-              Sumber Terkoneksi: <span style={{ fontWeight: 600 }}>{activeDetectSource}</span>
-            </p>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem", margin: "0.5rem 0" }}>
-            <Tile style={{ padding: "0.75rem" }}>
-              <div style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)" }}>Total Baris</div>
-              <div style={{ fontSize: "1.25rem", fontWeight: 600, marginTop: "0.25rem" }}>
-                {profile?.totalRows ?? 0}
-              </div>
-            </Tile>
-            <Tile style={{ padding: "0.75rem" }}>
-              <div style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)" }}>Total Kolom</div>
-              <div style={{ fontSize: "1.25rem", fontWeight: 600, marginTop: "0.25rem" }}>
-                {profile?.totalColumns ?? 0}
-              </div>
-            </Tile>
-            <Tile style={{ padding: "0.75rem" }}>
-              <div style={{ fontSize: "0.75rem", color: "var(--cds-text-secondary)" }}>Duplikasi Baris</div>
-              <div style={{ fontSize: "1.25rem", fontWeight: 600, marginTop: "0.25rem" }}>
-                {profile?.duplicateRows ?? 0}
-              </div>
-            </Tile>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            <h5 style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--cds-text-primary)", margin: 0 }}>
-              Deteksi Pemetaan Kolom (Schema Mapping)
-            </h5>
-            <div style={{ overflowX: "auto", maxHeight: "300px" }}>
-              <Table size="sm">
-                <TableHead>
-                  <TableRow>
-                    <TableHeader>Nama Kolom</TableHeader>
-                    <TableHeader>Jenis Data</TableHeader>
-                    <TableHeader>Pemetaan Kunci</TableHeader>
-                    <TableHeader>Baris Kosong</TableHeader>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {(columns || []).map((col) => {
-                    const isNumeric = profile?.numericColumns.includes(col);
-                    const canonicalKey = detectCanonicalKey(col);
-                    const missingObj = profile?.missingByColumn.find((m) => m.column === col);
-                    const missingText = missingObj ? `${missingObj.missing} (${missingObj.percentage.toFixed(1)}%)` : "0 (0%)";
-
-                    return (
-                      <TableRow key={col}>
-                        <TableCell style={{ fontWeight: 600 }}>{col}</TableCell>
-                        <TableCell>{isNumeric ? "Numerik" : "Kategorikal"}</TableCell>
-                        <TableCell>
-                          {canonicalKey ? (
-                            <Tag type="blue" size="sm" style={{ textTransform: "uppercase" }}>
-                              {canonicalKey.replace("_", " ")}
-                            </Tag>
-                          ) : (
-                            <span style={{ color: "var(--cds-text-muted, #8d8d8d)", fontSize: "0.75rem" }}>
-                              Tidak Terpetakan
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>{missingText}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }

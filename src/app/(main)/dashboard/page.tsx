@@ -79,8 +79,6 @@ function DashboardPageContent() {
   const searchParams = useSearchParams();
   const { kpis, chartData, rankingTop, rankingBottom, insights } = useDashboardMetrics();
   const rows = useDashboardStore((state) => state.rows);
-  const columns = useDashboardStore((state) => state.columns);
-  const profile = useDashboardStore((state) => state.profile);
   const kpiThreshold = useDashboardStore((state) => state.kpiThreshold);
   const ikuTargets = useDashboardStore((state) => state.ikuTargets);
   const activeDashboardTab = useDashboardStore((state) => state.activeDashboardTab);
@@ -272,8 +270,6 @@ function DashboardPageContent() {
           dashboardConnections={dashboardConnections}
           isLoading={!areDashboardConnectionsReady || parseStatus === "loading" || isSwitchLoading}
           ikuTargets={ikuTargets}
-          profile={profile}
-          columns={columns}
           onDisconnect={handleDisconnectConnection}
         />
       )}
