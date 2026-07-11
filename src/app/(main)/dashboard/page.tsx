@@ -7,8 +7,10 @@ import {
   SkeletonPlaceholder,
   SkeletonText,
   Tile,
-  Select,
-  SelectItem,
+  StructuredListWrapper,
+  StructuredListBody,
+  StructuredListRow,
+  StructuredListCell,
 } from "@carbon/react";
 import { dashboardMenuItems, ikuDashboardDetails, type DashboardTabConnection } from "@/lib/dashboard-config";
 import { useDashboardMetrics, useDashboardStore } from "@/store/dashboard-store";
@@ -324,28 +326,36 @@ function DashboardPageContent() {
           <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--cds-text-secondary)", lineHeight: 1.5 }}>
             Pilih sumber data yang sudah terhubung untuk langsung digunakan pada dashboard ini.
           </p>
-          <Select
-            id="overview-existing-connection"
-            labelText="Daftar Koneksi"
-            helperText={existingConnectionOptions.length > 0 ? "Pilih sumber data yang sudah terkoneksi" : "Belum ada koneksi tersimpan"}
-            value={selectedExistingConnection?.id || ""}
-            onChange={(e) => {
-              const selectedId = e.target.value;
-              const found = sourceConnections.find((c) => c.id === selectedId) || null;
-              setSelectedExistingConnection(found ? { id: found.id, label: found.name } : null);
-            }}
-            disabled={existingConnectionOptions.length === 0}
-            size="md"
-          >
-            <SelectItem value="" text="Pilih sumber data..." />
-            {existingConnectionOptions.map((option) => (
-              <SelectItem
-                key={option.id}
-                value={option.id}
-                text={option.label}
-              />
-            ))}
-          </Select>
+          {existingConnectionOptions.length > 0 ? (
+            <div style={{ maxHeight: "250px", overflowY: "auto", border: "1px solid var(--cds-border-subtle-01)", marginTop: "0.5rem" }}>
+              <StructuredListWrapper selection aria-label="Daftar Koneksi">
+                <StructuredListBody>
+                  {existingConnectionOptions.map((option) => {
+                    const isSelected = selectedExistingConnection?.id === option.id;
+                    return (
+                      <StructuredListRow
+                        key={option.id}
+                        onClick={() => setSelectedExistingConnection(option)}
+                        style={{
+                          cursor: "pointer",
+                          backgroundColor: isSelected ? "var(--cds-layer-selected-01)" : undefined
+                        }}
+                      >
+                        <StructuredListCell style={{ fontWeight: 600 }}>{option.label}</StructuredListCell>
+                        <StructuredListCell style={{ color: isSelected ? "#0f62fe" : "var(--cds-text-secondary)", fontSize: "0.75rem", textAlign: "right", fontWeight: isSelected ? 600 : undefined }}>
+                          {isSelected ? "Terpilih" : `ID: ${option.id}`}
+                        </StructuredListCell>
+                      </StructuredListRow>
+                    );
+                  })}
+                </StructuredListBody>
+              </StructuredListWrapper>
+            </div>
+          ) : (
+            <p style={{ fontSize: "0.875rem", color: "var(--cds-text-secondary)", textAlign: "center", margin: "1.5rem 0" }}>
+              Belum ada koneksi tersimpan. Silakan sambungkan dataset baru terlebih dahulu.
+            </p>
+          )}
         </div>
       </Modal>
     </>
