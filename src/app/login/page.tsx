@@ -268,7 +268,7 @@ export default function LoginPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "2.5rem" }}>
           <div>
             <h1 style={{ fontSize: "1.75rem", fontWeight: 600, letterSpacing: "0.02em", color: "#ffffff", margin: "0 0 0.5rem 0" }}>
-              Varguard <span style={{ color: "#8d8d8d", fontWeight: 400 }}>IKU</span>
+              Monev <span style={{ color: "#8d8d8d", fontWeight: 400 }}>IKU</span>
             </h1>
             <p style={{ fontSize: "0.875rem", color: "#c6c6c6", margin: 0, fontWeight: 500 }}>
               Platform Integrasi Data dan Analisis Kinerja Utama
@@ -305,7 +305,7 @@ export default function LoginPage() {
 
         <div>
           <p style={{ fontSize: "0.6875rem", color: "#8d8d8d", margin: 0, letterSpacing: "0.02em" }}>
-            Varguard Analytics • Didukung oleh IBM Carbon Design System
+            Monev Analytics • Didukung oleh IBM Carbon Design System
           </p>
         </div>
       </section>
