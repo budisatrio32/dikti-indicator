@@ -1221,17 +1221,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         Mengambil daftar sheet...
                       </span>
                     ) : newConnSheets.length > 0 ? (
-                      <Select
+                      <Dropdown
                         id={`${uid}-modal-conn-sheet`}
-                        labelText="Pilih Sheet (Worksheet)"
-                        value={selectedNewConnSheet}
-                        onChange={(e) => setSelectedNewConnSheet(e.target.value)}
+                        titleText="Pilih Sheet (Worksheet)"
+                        label="Pilih sheet..."
+                        items={newConnSheets}
+                        selectedItem={selectedNewConnSheet}
+                        onChange={({ selectedItem }) => setSelectedNewConnSheet(selectedItem || "")}
                         size="md"
-                      >
-                        {newConnSheets.map((sheet) => (
-                          <SelectItem key={sheet} value={sheet} text={sheet} />
-                        ))}
-                      </Select>
+                      />
                     ) : (
                       <span style={{ fontSize: "0.75rem", color: "var(--cds-text-error, #da1e28)" }}>
                         Gagal memuat sheet. Pastikan akses publik spreadsheet terbuka.
@@ -1321,17 +1319,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   Mengambil daftar sheet...
                 </span>
               ) : editConnSheets.length > 0 ? (
-                <Select
+                <Dropdown
                   id={`${uid}-edit-conn-sheet`}
-                  labelText="Pilih Sheet (Worksheet)"
-                  value={selectedEditConnSheet}
-                  onChange={(e) => setSelectedEditConnSheet(e.target.value)}
+                  titleText="Pilih Sheet (Worksheet)"
+                  label="Pilih sheet..."
+                  items={editConnSheets}
+                  selectedItem={selectedEditConnSheet}
+                  onChange={({ selectedItem }) => setSelectedEditConnSheet(selectedItem || "")}
                   size="md"
-                >
-                  {editConnSheets.map((sheet) => (
-                    <SelectItem key={sheet} value={sheet} text={sheet} />
-                  ))}
-                </Select>
+                />
               ) : (
                 <span style={{ fontSize: "0.75rem", color: "var(--cds-text-error, #da1e28)" }}>
                   Gagal memuat sheet. Pastikan akses publik spreadsheet terbuka.
