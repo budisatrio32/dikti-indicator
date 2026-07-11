@@ -3,11 +3,12 @@
 import { Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
-  Dropdown,
   Modal,
   SkeletonPlaceholder,
   SkeletonText,
   Tile,
+  Select,
+  SelectItem,
 } from "@carbon/react";
 import { dashboardMenuItems, ikuDashboardDetails, type DashboardTabConnection } from "@/lib/dashboard-config";
 import { useDashboardMetrics, useDashboardStore } from "@/store/dashboard-store";
@@ -323,17 +324,28 @@ function DashboardPageContent() {
           <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--cds-text-secondary)", lineHeight: 1.5 }}>
             Pilih sumber data yang sudah terhubung untuk langsung digunakan pada dashboard ini.
           </p>
-          <Dropdown
+          <Select
             id="overview-existing-connection"
-            titleText="Daftar Koneksi"
-            label={existingConnectionOptions.length > 0 ? "Pilih sumber data yang sudah terkoneksi" : "Belum ada koneksi tersimpan"}
-            items={existingConnectionOptions}
-            itemToString={(item) => item?.label || ""}
-            selectedItem={selectedExistingConnection}
-            onChange={({ selectedItem }) => setSelectedExistingConnection((selectedItem as ExistingConnectionOption) || null)}
+            labelText="Daftar Koneksi"
+            helperText={existingConnectionOptions.length > 0 ? "Pilih sumber data yang sudah terkoneksi" : "Belum ada koneksi tersimpan"}
+            value={selectedExistingConnection?.id || ""}
+            onChange={(e) => {
+              const selectedId = e.target.value;
+              const found = sourceConnections.find((c) => c.id === selectedId) || null;
+              setSelectedExistingConnection(found ? { id: found.id, label: found.name } : null);
+            }}
             disabled={existingConnectionOptions.length === 0}
             size="md"
-          />
+          >
+            <SelectItem value="" text="Pilih sumber data..." />
+            {existingConnectionOptions.map((option) => (
+              <SelectItem
+                key={option.id}
+                value={option.id}
+                text={option.label}
+              />
+            ))}
+          </Select>
         </div>
       </Modal>
     </>
