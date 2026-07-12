@@ -86,23 +86,30 @@ export async function GET(request: Request) {
     return errorRedirect(request, "Gagal mengambil profil Google.");
   }
 
-  const session = await upsertGoogleUser({
-    name: userInfo.name || userInfo.email.split("@")[0],
-    email: userInfo.email,
-    avatarUrl: userInfo.picture || ""
-  });
+  try {
+    const session = await upsertGoogleUser({
+      name: userInfo.name || userInfo.email.split("@")[0],
+      email: userInfo.email,
+      avatarUrl: userInfo.picture || ""
+    });
 
-  const loginUrl = new URL("/login", getBaseUrl(request));
-  loginUrl.searchParams.set("google_auth", "success");
+    const loginUrl = new URL("/login", getBaseUrl(request));
+    loginUrl.searchParams.set("google_auth", "success");
 
-  const response = NextResponse.redirect(loginUrl);
-  response.cookies.set("iku_oauth_session", JSON.stringify(session), {
-    httpOnly: false,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60
-  });
+    const response = NextResponse.redirect(loginUrl);
+    response.cookies.set("iku_oauth_session", JSON.stringify(session), {
+      httpOnly: false,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60
+    });
 
-  return response;
+    return response;
+  } catch (error: any) {
+    if (error?.message === "USER_DEACTIVATED") {
+      return errorRedirect(request, "Akun Google Anda telah dinonaktifkan. Silakan hubungi admin.");
+    }
+    return errorRedirect(request, "Gagal mengautentikasi pengguna Google.");
+  }
 }

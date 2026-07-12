@@ -61,6 +61,10 @@ export async function authenticateCredentials(input: {
   if (!user || user.provider !== "credentials" || !user.passwordHash) return null;
   if (!verifyPassword(input.password, user.passwordHash)) return null;
 
+  if (!user.isActive) {
+    throw new Error("USER_DEACTIVATED");
+  }
+
   return {
     name: user.name,
     email: user.email,
@@ -75,6 +79,11 @@ export async function upsertGoogleUser(input: {
   avatarUrl: string;
 }): Promise<AuthUser> {
   const email = input.email.toLowerCase();
+
+  const existing = await prisma.appUser.findUnique({ where: { email } });
+  if (existing && !existing.isActive) {
+    throw new Error("USER_DEACTIVATED");
+  }
 
   const user = await prisma.appUser.upsert({
     where: { email },

@@ -14,15 +14,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email dan password wajib diisi." }, { status: 400 });
     }
 
-    const user = await authenticateCredentials({ email, password });
-    if (!user) {
-      return NextResponse.json(
-        { error: "Email atau sandi institusi salah." },
-        { status: 401 }
-      );
-    }
+    try {
+      const user = await authenticateCredentials({ email, password });
+      if (!user) {
+        return NextResponse.json(
+          { error: "Email atau sandi institusi salah." },
+          { status: 401 }
+        );
+      }
 
-    return NextResponse.json({ user });
+      return NextResponse.json({ user });
+    } catch (error: any) {
+      if (error?.message === "USER_DEACTIVATED") {
+        return NextResponse.json(
+          { error: "Akun Anda telah dinonaktifkan. Silakan hubungi admin." },
+          { status: 403 }
+        );
+      }
+      throw error;
+    }
   } catch {
     return NextResponse.json(
       { error: "Gagal memverifikasi login user dari database." },

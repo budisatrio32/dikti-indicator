@@ -15,6 +15,7 @@ model AppUser {
   resetTokenExpiresAt DateTime? @map("reset_token_expires_at") @db.Timestamptz(6)
   provider     String   @default("credentials")
   avatarUrl    String?  @map("avatar_url")
+  isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
 
