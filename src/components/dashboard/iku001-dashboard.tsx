@@ -31,6 +31,7 @@ type Props = {
   rows: RawRow[];
   parseStatus: "idle" | "loading" | "success" | "error";
   errorMessage: string | null;
+  target?: number;
 };
 
 type ParsedRow = {
@@ -128,7 +129,7 @@ export function Iku001Skeleton() {
   );
 }
 
-export function Iku001Dashboard({ rows, parseStatus, errorMessage }: Props) {
+export function Iku001Dashboard({ rows, parseStatus, errorMessage, target = 25 }: Props) {
   const parsed = useMemo(() => {
     if (!rows.length) return [] as ParsedRow[];
 
@@ -180,11 +181,8 @@ export function Iku001Dashboard({ rows, parseStatus, errorMessage }: Props) {
     const totalIn = items.reduce((a, b) => a + b.studentsIn, 0);
     const totalGrad = items.reduce((a, b) => a + b.graduatesOnTime, 0);
     const real = totalIn > 0 ? (totalGrad / totalIn) * 100 : 0;
-    const weightedIdealNumerator = items.reduce(
-      (acc, row) => acc + row.studentsIn * (AEE_IDEAL_BY_DEGREE[row.degree] ?? 0),
-      0
-    );
-    const ideal = totalIn > 0 ? weightedIdealNumerator / totalIn : 0;
+    
+    const ideal = target;
     const achievement = ideal > 0 ? (real / ideal) * 100 : 0;
     return { totalIn, totalGrad, real, ideal, achievement };
   };
@@ -230,11 +228,11 @@ export function Iku001Dashboard({ rows, parseStatus, errorMessage }: Props) {
     }
     return ["D3", "S1", "S2", "S3"].map((d) => {
       const cur = map.get(d) ?? { degree: d, in: 0, grad: 0 };
-      const ideal = AEE_IDEAL_BY_DEGREE[d] ?? 0;
+      const ideal = target;
       const real = cur.in > 0 ? (cur.grad / cur.in) * 100 : 0;
       return { ...cur, real, target: ideal, achievement: ideal > 0 ? (real / ideal) * 100 : 0 };
     });
-  }, [filtered]);
+  }, [filtered, target]);
 
   const facultyPerf = useMemo(() => {
     const map = new Map<string, { faculty: string; rows: ParsedRow[] }>();
@@ -263,12 +261,12 @@ export function Iku001Dashboard({ rows, parseStatus, errorMessage }: Props) {
     return [...map.values()]
       .map((p) => {
         const real = p.in > 0 ? (p.grad / p.in) * 100 : 0;
-        const ideal = AEE_IDEAL_BY_DEGREE[p.degree] ?? 0;
+        const ideal = target;
         const achievement = ideal > 0 ? (real / ideal) * 100 : 0;
         return { ...p, iku: achievement };
       })
       .sort((a, b) => b.iku - a.iku);
-  }, [filtered]);
+  }, [filtered, target]);
 
   const top10 = useMemo(() => prodiPerf.slice(0, 10), [prodiPerf]);
   const bottom10 = useMemo(() => [...prodiPerf].slice(-10).reverse(), [prodiPerf]);

@@ -65,6 +65,7 @@ type IkuRegistryItem = {
     rows: any[];
     parseStatus: "idle" | "loading" | "success" | "error";
     errorMessage: string | null;
+    target?: number;
   }>;
   Skeleton: React.ComponentType<{}>;
 };
@@ -293,6 +294,7 @@ function DashboardPageContent() {
               rows={rows}
               parseStatus={parseStatus}
               errorMessage={errorMessage}
+              target={ikuTargets[activeDashboardTab]}
             />
           );
         }
