@@ -359,6 +359,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         const resp = await fetch(`/api/sources?userEmail=${encodeURIComponent(currentUser.email)}`, {
           cache: "no-store"
         });
+        if (resp.status === 403) {
+          localStorage.removeItem("iku-user-session");
+          router.push("/login?google_auth=error&error=" + encodeURIComponent("Akun Anda telah dinonaktifkan. Silakan hubungi admin."));
+          return;
+        }
         if (!resp.ok) throw new Error("failed");
         const json = await resp.json();
         const parsed = Array.isArray(json.connections) ? (json.connections as SheetConnection[]) : [];
@@ -398,6 +403,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         const resp = await fetch(`/api/dashboard-connections?userEmail=${encodeURIComponent(currentUser.email)}`, {
           cache: "no-store",
         });
+        if (resp.status === 403) {
+          localStorage.removeItem("iku-user-session");
+          router.push("/login?google_auth=error&error=" + encodeURIComponent("Akun Anda telah dinonaktifkan. Silakan hubungi admin."));
+          return;
+        }
         if (!resp.ok) {
           setDashboardTabConnections([]);
           setDashboardConnectionsReady(true);

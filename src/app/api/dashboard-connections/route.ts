@@ -24,6 +24,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "userEmail wajib diisi." }, { status: 400 });
     }
 
+    const user = await prisma.appUser.findUnique({ where: { email: userEmail } });
+    if (user && !user.isActive) {
+      return NextResponse.json({ error: "Akun Anda telah dinonaktifkan. Silakan hubungi admin." }, { status: 403 });
+    }
+
     if (dashboardTab) {
       const row = await prisma.dashboardTabConnection.findUnique({
         select: dashboardConnectionSelect,

@@ -50,7 +50,13 @@ export default function LoginPage() {
   // Login States
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("google_auth") === "success";
+    }
+    return false;
+  });
 
   // Register States
   const [regName, setRegName] = useState("");
