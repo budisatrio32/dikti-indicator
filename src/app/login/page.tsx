@@ -13,6 +13,7 @@ import {
 import {
   ArrowRight
 } from "@carbon/icons-react";
+import { DEMO_MODE, ensureDemoSession } from "@/lib/demo-mode";
 
 function parseCookie(name: string): string | null {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -77,8 +78,8 @@ export default function LoginPage() {
 
   // Protect routes and sync user session on mount / OAuth callback
   useEffect(() => {
-    // 1. Check if already logged in
-    const rawUser = localStorage.getItem("iku-user-session");
+    // 1. Check if already logged in (mode demo: langsung buat sesi demo)
+    const rawUser = DEMO_MODE ? ensureDemoSession() : localStorage.getItem("iku-user-session");
     if (rawUser) {
       router.push("/dashboard");
       return;
