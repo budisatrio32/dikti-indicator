@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import { IconButton, SkeletonText, Tag, Theme } from "@carbon/react";
-import { AddComment, Book, ChartBar, Close, Information, Maximize, Minimize, RecentlyViewed, WatsonxAi } from "@carbon/icons-react";
+import { IconButton, Tag, Theme } from "@carbon/react";
+import { AddComment, Book, ChartBar, Close, Information, Maximize, Minimize, WatsonxAi } from "@carbon/icons-react";
 import { CHAT_DISCLAIMER } from "@/lib/chat-mock";
 import { useChatStore, useChatThread } from "@/store/chat-store";
 import { AiExplainability } from "./assistant-message";
 import { ChatComposer } from "./chat-composer";
 import { ChatEmptyState } from "./chat-empty-state";
-import { ChatHistory } from "./chat-history";
 import { CHAT_LAUNCHER_ID, CHAT_PANEL_ID } from "./chat-launcher";
 import { MessageList } from "./message-list";
 import { useChatScope } from "./use-chat-scope";
@@ -49,12 +48,11 @@ function useFirstName() {
 export function ChatPanel() {
   const isOpen = useChatStore((state) => state.isOpen);
   const isExpanded = useChatStore((state) => state.isExpanded);
-  const view = useChatStore((state) => state.view);
-  const { close, toggleExpanded, setView, newChat, send, stop } = useChatStore.getState();
+  const { close, toggleExpanded, newChat, send, stop } = useChatStore.getState();
 
   const scope = useChatScope();
   const thread = useChatThread(scope.id);
-  const { messages, conversationId, hiddenCount, isSending, isLoadingConversation } = thread;
+  const { messages, isSending } = thread;
   const isIku = scope.kind === "iku";
 
   const firstName = useFirstName();
@@ -89,14 +87,6 @@ export function ChatPanel() {
     }
   }, [messages, scope.id]);
 
-  // Percakapan dari riwayat dibuka dari atas, dimulai dari tombol "Tampilkan n pesan sebelumnya".
-  useEffect(() => {
-    const body = bodyRef.current;
-    if (!body || isLoadingConversation || !conversationId || hiddenCount === 0) return;
-    body.scrollTop = 0;
-    stickToBottom.current = false;
-  }, [conversationId, isLoadingConversation, hiddenCount]);
-
   if (!isOpen) return null;
 
   const handleSend = (question: string) => {
@@ -123,16 +113,6 @@ export function ChatPanel() {
           <AiExplainability size="2xs" />
         </h2>
         <div className={styles.panelActions}>
-          <IconButton
-            kind="ghost"
-            size="lg"
-            label={`Riwayat percakapan ${scope.label}`}
-            align="bottom"
-            isSelected={view === "history"}
-            onClick={() => setView(view === "history" ? "chat" : "history")}
-          >
-            <RecentlyViewed />
-          </IconButton>
           <IconButton
             kind="ghost"
             size="lg"
@@ -184,19 +164,13 @@ export function ChatPanel() {
           stickToBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < SCROLL_STICK_THRESHOLD;
         }}
       >
-        {view === "history" ? (
-          <ChatHistory scope={scope} />
-        ) : (
-          <div className={styles.bodyInner}>
-            {isLoadingConversation ? (
-              <SkeletonText paragraph lineCount={6} />
-            ) : messages.length === 0 ? (
-              <ChatEmptyState scope={scope} userName={firstName} onSelect={handleSend} />
-            ) : (
-              <MessageList scope={scope} thread={thread} />
-            )}
-          </div>
-        )}
+        <div className={styles.bodyInner}>
+          {messages.length === 0 ? (
+            <ChatEmptyState scope={scope} userName={firstName} onSelect={handleSend} />
+          ) : (
+            <MessageList scope={scope} thread={thread} />
+          )}
+        </div>
       </div>
 
       <ChatComposer

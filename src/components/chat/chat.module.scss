@@ -596,31 +596,6 @@
 }
 
 // ============================================================
-// Riwayat
-// ============================================================
-.historyHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-03;
-}
-
-.historyTitle {
-  margin: 0;
-  @include type-style('heading-compact-02');
-}
-
-.historyList {
-  margin-inline: calc(-1 * #{$spacing-05});
-}
-
-.historyItemMeta {
-  display: block;
-  color: var(--cds-text-secondary);
-  @include type-style('label-01');
-}
-
-// ============================================================
 // Composer & disclaimer
 // ============================================================
 .composer {

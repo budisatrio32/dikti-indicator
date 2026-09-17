@@ -117,8 +117,14 @@ export default function LoginPage() {
     }
   }, [router]);
 
-  const handleCredentialsLogin = async (e: React.FormEvent) => {
+  const handleCredentialsLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Baca langsung dari form: nilai autofill browser belum tentu masuk ke state React.
+    const form = new FormData(e.currentTarget);
+    const email = String(form.get("email") ?? "");
+    const password = String(form.get("password") ?? "");
+    setEmail(email);
+    setPassword(password);
     if (!email.trim() || !password.trim()) {
       setAuthError("Email dan password wajib diisi.");
       return;
@@ -344,6 +350,9 @@ export default function LoginPage() {
               <form onSubmit={handleCredentialsLogin} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
                 <TextInput
                   id="auth-email"
+                  name="email"
+                  type="email"
+                  autoComplete="username"
                   labelText="Email Institusi"
                   placeholder="nama@univ.ac.id"
                   value={email}
@@ -353,6 +362,8 @@ export default function LoginPage() {
                 />
                 <PasswordInput
                   id="auth-password"
+                  name="password"
+                  autoComplete="current-password"
                   labelText="Kata Sandi"
                   placeholder="Masukkan sandi Anda"
                   value={password}
@@ -375,10 +386,10 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   renderIcon={ArrowRight}
-                  disabled={isLoading || isGoogleLoading || !email || !password}
+                  disabled={isLoading || isGoogleLoading}
                   style={{ width: "100%", marginTop: "0.5rem", borderRadius: 0, paddingRight: "1.5rem" }}
                 >
-                  Masuk Kredensial
+                  {isLoading ? "Memverifikasi…" : "Masuk Kredensial"}
                 </Button>
               </form>
 

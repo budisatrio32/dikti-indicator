@@ -1,11 +1,11 @@
 // Data mock Asisten IKU untuk tahap slicing.
-// DATA: seluruh isi file ini diganti respons POST /api/chat & GET /api/chat/conversations (API NOT FOUND).
+// DATA: seluruh isi file ini diganti respons POST /api/chat (API NOT FOUND).
 // Pembatasan cakupan di sini hanya simulasi UI; penegakan sebenarnya WAJIB di server (retrieval difilter per IKU).
 // Angka AEE di bawah adalah contoh statis; kalkulasi asli wajib memakai logika IKU di src/lib (bukan di sini).
 
 import { ikuDashboardDetails } from "@/lib/dashboard-config";
 import { findMentionedIku, isIkuTab, scopeForTab } from "@/lib/chat-scope";
-import type { ChatAnswer, ChatMessage, ChatScopeRef, ConversationSummary, StarterPrompt } from "@/types/chat";
+import type { ChatAnswer, ChatScopeRef, StarterPrompt } from "@/types/chat";
 
 export const CHAT_DISCLAIMER = "Dibuat AI dari Buku IKU V1 & data modul. Periksa sebelum pelaporan.";
 
@@ -339,66 +339,3 @@ export function pickMockAnswer(question: string, scope: ChatScopeRef): MockAnswe
 
 /** Kata kunci untuk mendemokan state error di mode mock. */
 export const MOCK_ERROR_KEYWORD = "#error";
-
-// ------------------------------------------------------------
-// Riwayat per cakupan
-// ------------------------------------------------------------
-
-const today = new Date();
-const minutesAgo = (m: number) => new Date(today.getTime() - m * 60_000).toISOString();
-
-export const mockConversations: ConversationSummary[] = [
-  { id: "conv-aee", scopeId: "IKU 001", title: "Kalkulasi AEE & definisi IKU 001", updatedAt: minutesAgo(12), messageCount: 4 },
-  { id: "conv-iku9", scopeId: "IKU 009", title: "Pendapatan yang tidak diakui", updatedAt: minutesAgo(40), messageCount: 2 },
-  { id: "conv-wajib", scopeId: "overview", title: "Beda IKU wajib dan pilihan", updatedAt: minutesAgo(60 * 26), messageCount: 2 },
-];
-
-function assistantFrom(id: string, conversationId: string, question: string, mock: MockAnswer, createdAt: string): ChatMessage {
-  return {
-    id,
-    role: "assistant",
-    createdAt,
-    status: "done",
-    text: mock.answer,
-    question,
-    feedback: null,
-    answer: {
-      conversationId,
-      messageId: id,
-      answer: mock.answer,
-      blocks: mock.blocks,
-      citations: mock.citations,
-      grounded: mock.grounded,
-      confidence: mock.confidence,
-      action: mock.action,
-      outOfScope: mock.outOfScope,
-      disclaimer: CHAT_DISCLAIMER,
-    },
-  };
-}
-
-export function getMockConversationMessages(conversationId: string): ChatMessage[] {
-  if (conversationId === "conv-aee") {
-    const q2 = "Apa definisi dan kriteria IKU 001?";
-    return [
-      { id: "a1", role: "user", text: AEE_QUESTION, createdAt: minutesAgo(14) },
-      assistantFrom("a2", conversationId, AEE_QUESTION, aeeAnswer, minutesAgo(14)),
-      { id: "a3", role: "user", text: q2, createdAt: minutesAgo(12) },
-      assistantFrom("a4", conversationId, q2, ikuDefinitionAnswer("IKU 001"), minutesAgo(12)),
-    ];
-  }
-  if (conversationId === "conv-iku9") {
-    return [
-      { id: "n1", role: "user", text: IKU9_QUESTION, createdAt: minutesAgo(40) },
-      assistantFrom("n2", conversationId, IKU9_QUESTION, iku9Answer, minutesAgo(40)),
-    ];
-  }
-  if (conversationId === "conv-wajib") {
-    const q = "Apa beda IKU wajib dan pilihan?";
-    return [
-      { id: "w1", role: "user", text: q, createdAt: minutesAgo(60 * 26) },
-      assistantFrom("w2", conversationId, q, wajibPilihanAnswer, minutesAgo(60 * 26)),
-    ];
-  }
-  return [];
-}

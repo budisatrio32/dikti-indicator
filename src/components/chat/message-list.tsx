@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@carbon/react";
-import { useChatStore, type ChatThread } from "@/store/chat-store";
+import type { ChatThread } from "@/store/chat-store";
 import type { ChatScope } from "@/types/chat";
 import { AssistantMessage } from "./assistant-message";
 import styles from "./chat.module.scss";
@@ -21,26 +20,15 @@ function dayLabel(iso: string) {
 }
 
 export function MessageList({ scope, thread }: { scope: ChatScope; thread: ChatThread }) {
-  const showHidden = useChatStore((state) => state.showHidden);
-  const { messages, hiddenCount, isSending } = thread;
-
-  const visible = messages.slice(hiddenCount);
-  if (visible.length === 0) return null;
+  const { messages, isSending } = thread;
+  if (messages.length === 0) return null;
 
   return (
     <>
-      {hiddenCount > 0 ? (
-        <div className={styles.divider}>
-          <Button kind="ghost" size="sm" onClick={() => showHidden(scope.id)}>
-            Tampilkan {hiddenCount} pesan sebelumnya
-          </Button>
-        </div>
-      ) : (
-        <p className={styles.divider}>{dayLabel(visible[0].createdAt)}</p>
-      )}
+      <p className={styles.divider}>{dayLabel(messages[0].createdAt)}</p>
 
       <ol className={styles.messageList} role="log" aria-live="polite" aria-label={`Percakapan Asisten IKU · ${scope.label}`}>
-        {visible.map((message) => (
+        {messages.map((message) => (
           <li key={message.id}>
             {message.role === "user" ? (
               <div className={styles.userMessage}>

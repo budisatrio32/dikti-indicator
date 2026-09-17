@@ -1,46 +1,36 @@
 "use client";
 
 import { create } from "zustand";
-import { getConversationMessages, sendFeedback, sendQuestion } from "@/lib/chat-client";
+import { sendFeedback, sendQuestion } from "@/lib/chat-client";
 import type { ChatMessage, ChatScopeRef, FeedbackValue } from "@/types/chat";
 
-type ChatView = "chat" | "history";
 type AssistantMessage = Extract<ChatMessage, { role: "assistant" }>;
 
 /** Satu percakapan per cakupan halaman (Overview, IKU 001, IKU 002, …). */
 export type ChatThread = {
   conversationId?: string;
   messages: ChatMessage[];
-  /** Jumlah pesan lama yang disembunyikan saat membuka riwayat. */
-  hiddenCount: number;
   isSending: boolean;
-  isLoadingConversation: boolean;
 };
 
 export const EMPTY_THREAD: ChatThread = {
   messages: [],
-  hiddenCount: 0,
   isSending: false,
-  isLoadingConversation: false,
 };
 
 type ChatState = {
   isOpen: boolean;
   isExpanded: boolean;
-  view: ChatView;
   threads: Record<string, ChatThread>;
   open: () => void;
   close: () => void;
   toggle: () => void;
   toggleExpanded: () => void;
-  setView: (view: ChatView) => void;
-  showHidden: (scopeId: string) => void;
   newChat: (scopeId: string) => void;
   send: (question: string, scope: ChatScopeRef) => Promise<void>;
   retry: (messageId: string, scope: ChatScopeRef) => Promise<void>;
   stop: (scopeId: string) => void;
   setFeedback: (scopeId: string, messageId: string, value: FeedbackValue) => void;
-  loadConversation: (scopeId: string, conversationId: string) => Promise<void>;
 };
 
 const controllers = new Map<string, AbortController>();
@@ -105,20 +95,16 @@ export const useChatStore = create<ChatState>((set, get) => {
   return {
     isOpen: false,
     isExpanded: false,
-    view: "chat",
     threads: {},
 
     open: () => set({ isOpen: true }),
     close: () => set({ isOpen: false }),
     toggle: () => set((state) => ({ isOpen: !state.isOpen })),
     toggleExpanded: () => set((state) => ({ isExpanded: !state.isExpanded })),
-    setView: (view) => set({ view }),
-    showHidden: (scopeId) => updateThread(scopeId, () => ({ hiddenCount: 0 })),
 
     newChat: (scopeId) => {
       get().stop(scopeId);
-      updateThread(scopeId, () => ({ conversationId: undefined, messages: [], hiddenCount: 0 }));
-      set({ view: "chat" });
+      updateThread(scopeId, () => ({ conversationId: undefined, messages: [] }));
     },
 
     send: async (question, scope) => {
@@ -126,7 +112,6 @@ export const useChatStore = create<ChatState>((set, get) => {
       if (!text || thread(scope.id).isSending) return;
       const now = new Date().toISOString();
       const assistantId = createId();
-      set({ view: "chat" });
       updateThread(scope.id, (current) => ({
         messages: [
           ...current.messages,
@@ -169,23 +154,6 @@ export const useChatStore = create<ChatState>((set, get) => {
       updateAssistant(scopeId, messageId, () => ({ feedback: value }));
       // Kegagalan kirim feedback tidak menghalangi UI; ditangani saat integrasi API.
       void sendFeedback(messageId, value).catch(() => undefined);
-    },
-
-    loadConversation: async (scopeId, conversationId) => {
-      get().stop(scopeId);
-      set({ view: "chat" });
-      updateThread(scopeId, () => ({ isLoadingConversation: true }));
-      try {
-        const messages = await getConversationMessages(conversationId);
-        updateThread(scopeId, () => ({
-          conversationId,
-          messages,
-          // Tampilkan hanya pertukaran terakhir; sisanya lewat "Tampilkan n pesan sebelumnya".
-          hiddenCount: Math.max(0, messages.length - 2),
-        }));
-      } finally {
-        updateThread(scopeId, () => ({ isLoadingConversation: false }));
-      }
     },
   };
 });

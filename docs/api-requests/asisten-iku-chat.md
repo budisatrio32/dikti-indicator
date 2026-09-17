@@ -84,23 +84,9 @@ Response `200` (`ChatAnswer`):
 
 UI sudah menyediakan callback `onStatus` dan `onToken`. Tombol **Hentikan** membatalkan request lewat `AbortSignal`, jadi server sebaiknya menghentikan pemanggilan LLM saat koneksi ditutup.
 
-## 2. `GET /api/chat/conversations?scope=<id>` — riwayat per halaman (FR-12)
+## 2–4. Riwayat percakapan — DIHAPUS
 
-Response `200`:
-
-```json
-{ "conversations": [{ "id": "uuid", "scopeId": "IKU 001", "title": "Kalkulasi AEE & definisi IKU 001", "updatedAt": "ISO-8601", "messageCount": 4 }] }
-```
-
-Diurutkan dari yang terbaru, hanya berisi milik user yang sedang login, dan hanya untuk `scope` yang diminta.
-
-## 3. `GET /api/chat/conversations/:id` — isi percakapan (FR-09, FR-12)
-
-Response `200`: `{ "messages": ChatMessage[] }`. Lihat bentuknya di `src/types/chat.ts`. Pesan asisten menyertakan `answer` (`ChatAnswer`) dan `feedback`.
-
-## 4. `DELETE /api/chat/conversations/:id` — hapus riwayat (FR-12, retensi UU PDP)
-
-Response `200`: `{ "ok": true }`. Respons `404` dikembalikan jika percakapan bukan milik user.
+Fitur riwayat (daftar, buka, dan hapus percakapan) dihapus dari UI. Endpoint `GET/DELETE /api/chat/conversations` **tidak dibutuhkan**. Percakapan hanya berlaku selama sesi browser (per halaman) dan hilang saat halaman dimuat ulang. `conversationId` tetap dipakai untuk menjaga konteks multi-turn (FR-09) dalam satu sesi.
 
 ## 5. `POST /api/chat/messages/:id/feedback` — umpan balik (FR-13)
 
@@ -114,7 +100,7 @@ Endpoint ini dipakai untuk tag "Buku IKU V1" pada bagian **Konteks jawaban**, ya
 
 ## Kebutuhan skema (`SCHEMA NOT FOUND`, PRD §3.4)
 
-- `ChatConversation`: id, userId, **scopeId** (`overview` / `IKU 00x`), title, createdAt, updatedAt
+- `ChatConversation`: id, userId, **scopeId** (`overview` / `IKU 00x`), createdAt (hanya untuk konteks multi-turn & audit; tidak ditampilkan sebagai riwayat)
 - `DocumentChunk` wajib punya metadata **`ikuCode`** (nullable untuk konten umum) agar retrieval bisa difilter per cakupan
 - `ChatMessage`: id, conversationId, role, text, blocks (Json), grounded, confidence, createdAt
 - `MessageCitation`: messageId, chunkId, documentVersionId, urutan

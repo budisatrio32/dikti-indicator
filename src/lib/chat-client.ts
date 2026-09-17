@@ -4,11 +4,9 @@
 import {
   CHAT_DISCLAIMER,
   MOCK_ERROR_KEYWORD,
-  getMockConversationMessages,
-  mockConversations,
   pickMockAnswer,
 } from "@/lib/chat-mock";
-import type { ChatAnswer, ChatMessage, ChatRequest, ConversationSummary, FeedbackValue } from "@/types/chat";
+import type { ChatAnswer, ChatRequest, FeedbackValue } from "@/types/chat";
 
 const USE_MOCK = process.env.NEXT_PUBLIC_CHAT_MOCK !== "false";
 
@@ -90,38 +88,6 @@ async function sendQuestionApi(req: ChatRequest, { signal, onToken }: SendOption
 
 export function sendQuestion(req: ChatRequest, options: SendOptions = {}) {
   return USE_MOCK ? sendQuestionMock(req, options) : sendQuestionApi(req, options);
-}
-
-// DATA: GET /api/chat/conversations?scope=<id> (API NOT FOUND)
-export async function listConversations(scopeId: string): Promise<ConversationSummary[]> {
-  if (USE_MOCK) {
-    await wait(400);
-    return mockConversations.filter((conversation) => conversation.scopeId === scopeId);
-  }
-  const response = await fetch(`/api/chat/conversations?scope=${encodeURIComponent(scopeId)}`);
-  if (!response.ok) throw new ChatClientError(await readError(response));
-  return ((await response.json()) as { conversations: ConversationSummary[] }).conversations;
-}
-
-// DATA: GET /api/chat/conversations/:id (API NOT FOUND)
-export async function getConversationMessages(conversationId: string): Promise<ChatMessage[]> {
-  if (USE_MOCK) {
-    await wait(300);
-    return getMockConversationMessages(conversationId);
-  }
-  const response = await fetch(`/api/chat/conversations/${encodeURIComponent(conversationId)}`);
-  if (!response.ok) throw new ChatClientError(await readError(response));
-  return ((await response.json()) as { messages: ChatMessage[] }).messages;
-}
-
-// DATA: DELETE /api/chat/conversations/:id (API NOT FOUND)
-export async function deleteConversation(conversationId: string): Promise<void> {
-  if (USE_MOCK) {
-    await wait(300);
-    return;
-  }
-  const response = await fetch(`/api/chat/conversations/${encodeURIComponent(conversationId)}`, { method: "DELETE" });
-  if (!response.ok) throw new ChatClientError(await readError(response));
 }
 
 // DATA: POST /api/chat/messages/:id/feedback (API NOT FOUND)

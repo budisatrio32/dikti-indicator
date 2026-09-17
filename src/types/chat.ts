@@ -101,14 +101,6 @@ export type ChatMessage =
       question: string;
     };
 
-export type ConversationSummary = {
-  id: string;
-  scopeId: string;
-  title: string;
-  updatedAt: string;
-  messageCount: number;
-};
-
 export type StarterPrompt = {
   id: string;
   title: string;
