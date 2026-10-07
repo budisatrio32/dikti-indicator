@@ -77,8 +77,6 @@ export type ChatAnswer = {
 
 export type ChatError = { error: string };
 
-export type FeedbackValue = "up" | "down" | null;
-
 export type ChatMessage =
   | {
       id: string;
@@ -96,8 +94,7 @@ export type ChatMessage =
       text: string;
       answer?: ChatAnswer;
       error?: string;
-      feedback: FeedbackValue;
-      /** Pertanyaan asal, untuk tombol "Coba lagi"/"Buat ulang". */
+      /** Pertanyaan asal, untuk tombol "Coba lagi" saat jawaban gagal. */
       question: string;
     };
 

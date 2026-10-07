@@ -6,7 +6,7 @@ import {
   MOCK_ERROR_KEYWORD,
   pickMockAnswer,
 } from "@/lib/chat-mock";
-import type { ChatAnswer, ChatRequest, FeedbackValue } from "@/types/chat";
+import type { ChatAnswer, ChatRequest } from "@/types/chat";
 
 const USE_MOCK = process.env.NEXT_PUBLIC_CHAT_MOCK !== "false";
 
@@ -88,15 +88,4 @@ async function sendQuestionApi(req: ChatRequest, { signal, onToken }: SendOption
 
 export function sendQuestion(req: ChatRequest, options: SendOptions = {}) {
   return USE_MOCK ? sendQuestionMock(req, options) : sendQuestionApi(req, options);
-}
-
-// DATA: POST /api/chat/messages/:id/feedback (API NOT FOUND)
-export async function sendFeedback(messageId: string, value: FeedbackValue): Promise<void> {
-  if (USE_MOCK) return;
-  const response = await fetch(`/api/chat/messages/${encodeURIComponent(messageId)}/feedback`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ value }),
-  });
-  if (!response.ok) throw new ChatClientError(await readError(response));
 }

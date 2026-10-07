@@ -1,8 +1,8 @@
 "use client";
 
 import { create } from "zustand";
-import { sendFeedback, sendQuestion } from "@/lib/chat-client";
-import type { ChatMessage, ChatScopeRef, FeedbackValue } from "@/types/chat";
+import { sendQuestion } from "@/lib/chat-client";
+import type { ChatMessage, ChatScopeRef } from "@/types/chat";
 
 type AssistantMessage = Extract<ChatMessage, { role: "assistant" }>;
 
@@ -30,7 +30,6 @@ type ChatState = {
   send: (question: string, scope: ChatScopeRef) => Promise<void>;
   retry: (messageId: string, scope: ChatScopeRef) => Promise<void>;
   stop: (scopeId: string) => void;
-  setFeedback: (scopeId: string, messageId: string, value: FeedbackValue) => void;
 };
 
 const controllers = new Map<string, AbortController>();
@@ -123,7 +122,6 @@ export const useChatStore = create<ChatState>((set, get) => {
             status: "streaming",
             statusText: "Menyiapkan pencarian…",
             text: "",
-            feedback: null,
             question: text,
           },
         ],
@@ -140,7 +138,6 @@ export const useChatStore = create<ChatState>((set, get) => {
         text: "",
         answer: undefined,
         error: undefined,
-        feedback: null,
         createdAt: new Date().toISOString(),
       }));
       await runQuestion(scope, messageId, target.question);
@@ -148,12 +145,6 @@ export const useChatStore = create<ChatState>((set, get) => {
 
     stop: (scopeId) => {
       controllers.get(scopeId)?.abort();
-    },
-
-    setFeedback: (scopeId, messageId, value) => {
-      updateAssistant(scopeId, messageId, () => ({ feedback: value }));
-      // Kegagalan kirim feedback tidak menghalangi UI; ditangani saat integrasi API.
-      void sendFeedback(messageId, value).catch(() => undefined);
     },
   };
 });

@@ -1,18 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { AILabel, AILabelContent, Button, CopyButton, IconButton, InlineNotification, SkeletonText } from "@carbon/react";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  Renew,
-  SearchLocate,
-  ThumbsDown,
-  ThumbsDownFilled,
-  ThumbsUp,
-  ThumbsUpFilled,
-  WatsonxAi,
-} from "@carbon/icons-react";
+import { AILabel, AILabelContent, Button, CopyButton, InlineNotification, SkeletonText } from "@carbon/react";
+import { ArrowRight, ArrowUpRight, Renew, SearchLocate, WatsonxAi } from "@carbon/icons-react";
 import { scopeForTab } from "@/lib/chat-scope";
 import { useChatStore } from "@/store/chat-store";
 import { useDashboardStore } from "@/store/dashboard-store";
@@ -51,7 +41,6 @@ export function AssistantMessage({ message, scope, isSending }: AssistantMessage
   const router = useRouter();
   const retry = useChatStore((state) => state.retry);
   const send = useChatStore((state) => state.send);
-  const setFeedback = useChatStore((state) => state.setFeedback);
   const setActiveDashboardTab = useDashboardStore((state) => state.setActiveDashboardTab);
 
   const answer = message.answer;
@@ -157,43 +146,23 @@ export function AssistantMessage({ message, scope, isSending }: AssistantMessage
           <div className={styles.actions}>
             <div className={styles.actionIcons}>
               {answer && (
-                <>
-                  <CopyButton
-                    iconDescription="Salin jawaban"
-                    feedback="Tersalin"
-                    onClick={() => void navigator.clipboard?.writeText(answer.answer)}
-                  />
-                  <IconButton
-                    kind="ghost"
-                    size="md"
-                    label="Jawaban membantu"
-                    isSelected={message.feedback === "up"}
-                    aria-pressed={message.feedback === "up"}
-                    onClick={() => setFeedback(scope.id, message.id, message.feedback === "up" ? null : "up")}
-                  >
-                    {message.feedback === "up" ? <ThumbsUpFilled /> : <ThumbsUp />}
-                  </IconButton>
-                  <IconButton
-                    kind="ghost"
-                    size="md"
-                    label="Jawaban kurang membantu"
-                    isSelected={message.feedback === "down"}
-                    aria-pressed={message.feedback === "down"}
-                    onClick={() => setFeedback(scope.id, message.id, message.feedback === "down" ? null : "down")}
-                  >
-                    {message.feedback === "down" ? <ThumbsDownFilled /> : <ThumbsDown />}
-                  </IconButton>
-                </>
+                <CopyButton
+                  iconDescription="Salin jawaban"
+                  feedback="Tersalin"
+                  onClick={() => void navigator.clipboard?.writeText(answer.answer)}
+                />
               )}
-              <IconButton
-                kind="ghost"
-                size="md"
-                label={message.status === "error" ? "Coba lagi" : "Buat ulang jawaban"}
-                disabled={isSending}
-                onClick={() => void retry(message.id, scope)}
-              >
-                <Renew />
-              </IconButton>
+              {message.status === "error" && (
+                <Button
+                  kind="ghost"
+                  size="md"
+                  renderIcon={Renew}
+                  disabled={isSending}
+                  onClick={() => void retry(message.id, scope)}
+                >
+                  Coba lagi
+                </Button>
+              )}
             </div>
             {showAction && (
               <Button

@@ -88,9 +88,9 @@ UI sudah menyediakan callback `onStatus` dan `onToken`. Tombol **Hentikan** memb
 
 Fitur riwayat (daftar, buka, dan hapus percakapan) dihapus dari UI. Endpoint `GET/DELETE /api/chat/conversations` **tidak dibutuhkan**. Percakapan hanya berlaku selama sesi browser (per halaman) dan hilang saat halaman dimuat ulang. `conversationId` tetap dipakai untuk menjaga konteks multi-turn (FR-09) dalam satu sesi.
 
-## 5. `POST /api/chat/messages/:id/feedback` — umpan balik (FR-13)
+## 5. Umpan balik (feedback) — DIHAPUS
 
-Request: `{ "value": "up" | "down" | null }` (`null` berarti membatalkan). Response `200`: `{ "ok": true }`.
+Tombol suka/tidak suka dan "buat ulang jawaban" dihapus dari UI. Endpoint `POST /api/chat/messages/:id/feedback` **tidak dibutuhkan**. Tombol "Coba lagi" pada jawaban yang gagal cukup memanggil ulang `POST /api/chat` dengan pertanyaan dan `scope` yang sama.
 
 ## 6. (Opsional) `GET /api/knowledge/documents?status=aktif` — versi dokumen aktif
 
@@ -104,12 +104,11 @@ Endpoint ini dipakai untuk tag "Buku IKU V1" pada bagian **Konteks jawaban**, ya
 - `DocumentChunk` wajib punya metadata **`ikuCode`** (nullable untuk konten umum) agar retrieval bisa difilter per cakupan
 - `ChatMessage`: id, conversationId, role, text, blocks (Json), grounded, confidence, createdAt
 - `MessageCitation`: messageId, chunkId, documentVersionId, urutan
-- `MessageFeedback`: messageId, userId, value, comment?, createdAt
 - `AuditLog`: untuk pertanyaan yang diajukan (FR-17)
 
 ## Kebutuhan auth (`AUTH NOT READY`)
 
-Saat ini sesi hanya tersimpan di `localStorage`. Semua endpoint di atas membutuhkan sesi yang diverifikasi server (cookie `httpOnly`) agar riwayat dan feedback tidak bisa dibaca atau dimanipulasi user lain.
+Saat ini sesi hanya tersimpan di `localStorage`. Semua endpoint di atas membutuhkan sesi yang diverifikasi server (cookie `httpOnly`) agar percakapan dan data dasbor milik pengguna tidak bisa dibaca atau dimanipulasi user lain.
 
 ## Kebutuhan env (AI Ops)
 
